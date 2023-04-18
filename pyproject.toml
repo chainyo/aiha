@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "aiha"
+version = "0.1.0"
+description = "🦉 AIHA helps you to find the minimal requirements for any model on the 🤗 Hub."
+authors = ["Thomas Chaigneau <t.chaigneau.tc@gmail.com>"]
+license = "Apache-2.0"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.8,<4.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
