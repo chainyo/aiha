@@ -6,10 +6,9 @@ build-backend = "maturin"
 name = "aiha"
 version = "0.1.0"
 description = "🦉 AIHA helps you to find the minimal requirements for any model on the 🤗 Hub."
-authors = ["Thomas Chaigneau <t.chaigneau.tc@gmail.com>"]
-license = "Apache-2.0"
+author = { name = "Thomas Chaigneau", email = "t.chaigneau.tc@gmail.com" }
 readme = "README.md"
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 classifiers = [
     "Programming Language :: Rust",
     "Programming Language :: Python :: Implementation :: CPython",
