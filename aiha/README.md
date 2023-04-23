@@ -1,7 +1,7 @@
 # 🦉 AI Hardware Advisor
 
 <div align="center">
-  <img src="img/logo.png" width="200" height="200" />
+  <img src="../img/logo.png" width="200" height="200" />
   <p><em>AIHA, Guiding AI with Wisdom and Knowledge</em></p>
 </div>
 
