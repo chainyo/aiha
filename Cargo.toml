@@ -1,10 +1,8 @@
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [package]
 name = "aiha"
 version = "0.1.0"
-authors = ["Thomas Chaigneau <t.chaigneau.tc@gmail.com>"]
 edition = "2021"
+authors = ["Thomas Chaigneau <t.chaigneau.tc@gmail.com>"]
 description = "🦉 AIHA helps you to find the minimal requirements for any model on the 🤗 Hub."
 homepage = "https://github.com/chainyo/aiha"
 repository = "https://github.com/chainyo/aiha"
@@ -14,16 +12,11 @@ license = "Apache-2.0"
 readme = "README.md"
 exclude = [ "target/*", "Cargo.lock", "data/*" ]
 
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [lib]
 name = "aiha"
-path = "src/lib.rs"
-bench = false
-
-[[bin]]
-name = "aiha"
-path = "src/cli.rs"
-bench = false
+crate-type = ["cdylib"]
 
 [dependencies]
+pyo3 = "0.18.1"
 rust-gpu-tools = "0.7.1"
-

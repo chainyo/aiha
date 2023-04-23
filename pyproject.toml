@@ -1,15 +1,21 @@
-[tool.poetry]
+[build-system]
+requires = ["maturin>=0.14,<0.15"]
+build-backend = "maturin"
+
+[project]
 name = "aiha"
 version = "0.1.0"
 description = "🦉 AIHA helps you to find the minimal requirements for any model on the 🤗 Hub."
 authors = ["Thomas Chaigneau <t.chaigneau.tc@gmail.com>"]
 license = "Apache-2.0"
 readme = "README.md"
+requires-python = ">=3.7"
+classifiers = [
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.8,<4.0"
-
-
-[build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+[tool.maturin]
+python-source = "python"
+features = ["pyo3/extension-module"]
