@@ -1,6 +1,6 @@
 [package]
 name = "aiha"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2021"
 authors = ["Thomas Chaigneau <t.chaigneau.tc@gmail.com>"]
 description = "🦉 AIHA helps you to find the minimal requirements for any model on the 🤗 Hub."
@@ -18,6 +18,4 @@ name = "aiha"
 crate-type = ["cdylib"]
 
 [dependencies]
-# pyo3 = { version = "0.18.1", features = ["auto-initialize"] }
 pyo3 = "0.18.1"
-# rust-gpu-tools = "0.7.1"

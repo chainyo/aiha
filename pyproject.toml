@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "aiha"
-version = "0.1.0"
+version = "0.0.1"
 description = "🦉 AIHA helps you to find the minimal requirements for any model on the 🤗 Hub."
 author = { name = "Thomas Chaigneau", email = "t.chaigneau.tc@gmail.com" }
 readme = "README.md"
