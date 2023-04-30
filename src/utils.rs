@@ -14,7 +14,7 @@ use std::io::copy;
 /// ```
 /// use aiha::config::utils::download_model_config;
 /// 
-/// let model_path = "https://huggingface.co/distilbert-base-uncased-finetuned-sst-2-english/resolve/main/config.json";
+/// let model_path = "https://huggingface.co/EleutherAI/gpt-neox-20b/resolve/main/config.json";
 /// let save_path = "config.json";
 /// let result = download_model_config(model_path, save_path);
 /// assert!(result.is_ok());
@@ -27,6 +27,7 @@ use std::io::copy;
 /// * `Box<dyn std::error::Error>` - If the model config file cannot be downloaded.
 /// 
 pub fn download_model_config(model_path: &str, save_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+    // put the model_path in lowercase
     let url = Url::parse(model_path)?;
     let mut response = reqwest::blocking::get(url)?;
     let mut out = File::create(save_path)?;
@@ -41,8 +42,8 @@ mod tests {
     // Test for the download_model_config() function
     #[test]
     fn test_download_model_config() {
-        let model_path = "https://huggingface.co/distilbert-base-uncased-finetuned-sst-2-english/resolve/main/config.json";
-        let result = download_model_config(model_path, "distil/test/config.json");
+        let model_path = "https://huggingface.co/EleutherAI/gpt-neox-20b/resolve/main/config.json";
+        let result = download_model_config(model_path, "config.json");
         assert!(result.is_ok());
     }
 }
