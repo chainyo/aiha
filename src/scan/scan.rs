@@ -1,5 +1,6 @@
 use pyo3::prelude::*;
 use std::env::consts::{ARCH, OS};
+use std::path::PathBuf;
 
 #[pyclass]
 pub struct Scan {}
@@ -37,6 +38,31 @@ impl Scan {
     pub fn arch_scan(&self) -> PyResult<String> {
         Ok(ARCH.to_string())
     }
+
+    /// Returns a string representing the user's home directory.
+    /// Unix systems use the $HOME environment variable,
+    /// while Windows systems use the $USERPROFILE environment variable.
+    #[staticmethod]
+    fn get_home_dir() -> Option<PathBuf> {
+        #[cfg(target_family = "unix")]
+        {
+            std::env::var("HOME").ok().map(PathBuf::from)
+        }
+
+        #[cfg(target_family = "windows")]
+        {
+            std::env::var("USERPROFILE").ok().map(PathBuf::from)
+        }
+    }
+
+    /// Returns a string representing the user's home directory.
+    #[pyo3(text_signature = "($self)")]
+    pub fn home_dir(&self) -> PyResult<Option<String>> {
+        match Scan::get_home_dir() {
+            Some(path) => Ok(Some(path.to_str().unwrap().to_string())),
+            None => Ok(None),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -69,6 +95,13 @@ mod tests {
         assert!(arch_pyresult.is_ok());
         let arch_string = arch_pyresult.unwrap();
         assert_eq!(arch_string, ARCH);
+    }
+
+    // Test for the get_home_dir() method of the Scan struct
+    #[test]
+    fn test_scan_get_home_dir() {
+        let home_dir = Scan::get_home_dir();
+        assert!(home_dir.is_some());
     }
 }
 
