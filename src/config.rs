@@ -3,6 +3,8 @@ use pyo3::exceptions::PyValueError;
 use pyo3::types::PyDict;
 
 use crate::error::ConfigError;
+use crate::scan::Scan;
+use crate::utils::download_model_config;
 
 /// A struct representing a model config URL.
 #[pyclass]
@@ -36,6 +38,16 @@ impl ConfigUrl {
         let base_url = "https://huggingface.co/";
         format!("{}{}/resolve/main/config.json", base_url, self.path)
     }
+
+    /// Downloads the model config file from the HuggingFace Hub.
+    #[pyo3(text_signature = "($self)")]
+    fn download_config(&self) -> Result<(), pyo3::PyErr> {
+        let url = format!("{}/config.json", self.get_url());
+        let save_path = format!("{}/config.json", ".cache/aiha");
+        download_model_config(&url, &save_path)
+            .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("{}", e)))?;
+        Ok(())
+    }    
 }
 
 /// A struct representing a generic model config.

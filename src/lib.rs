@@ -3,6 +3,7 @@ use pyo3::prelude::*;
 mod config;
 mod error;
 mod scan;
+mod utils;
 
 
 #[pymodule]

@@ -27,7 +27,6 @@ use std::io::copy;
 /// * `Box<dyn std::error::Error>` - If the model config file cannot be downloaded.
 /// 
 pub fn download_model_config(model_path: &str, save_path: &str) -> Result<(), Box<dyn std::error::Error>> {
-    // put the model_path in lowercase
     let url = Url::parse(model_path)?;
     let mut response = reqwest::blocking::get(url)?;
     let mut out = File::create(save_path)?;
