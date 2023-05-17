@@ -1,10 +1,12 @@
 use pyo3::prelude::*;
-use pyo3::exceptions::PyValueError;
+use pyo3::exceptions::{PyValueError, PyFileNotFoundError};
 use pyo3::types::PyDict;
+use std::fs::File;
+use std::io::BufReader;
+use std::path::{Path, PathBuf};
 
-use crate::error::ConfigError;
 use crate::scan::Scan;
-use crate::utils::download_model_config;
+use crate::utils::{download_model_config, is_file_local};
 
 /// A struct representing a model config URL.
 #[pyclass]
@@ -39,57 +41,51 @@ impl ConfigUrl {
         format!("{}{}/resolve/main/config.json", base_url, self.path)
     }
 
-    /// Downloads the model config file from the HuggingFace Hub.
+    /// Download the model config file from the model config URL.
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// use aiha::config::ConfigUrl;
+    /// 
+    /// let model_path = "EleutherAI/gpt-neox-20b";
+    /// let config_url = ConfigUrl::new(model_path);
+    /// 
+    /// config_url.download_config();
+    /// ```
     #[pyo3(text_signature = "($self)")]
-    fn download_config(&self) -> Result<(), pyo3::PyErr> {
-        let url = format!("{}/config.json", self.get_url());
-        let save_path = format!("{}/config.json", ".cache/aiha");
-        download_model_config(&url, &save_path)
-            .map_err(|e| pyo3::exceptions::PyValueError::new_err(format!("{}", e)))?;
-        Ok(())
-    }    
-}
-
-/// A struct representing a generic model config.
-#[pyclass]
-#[derive(Debug)]
-pub struct ModelConfig {
-    hidden_size: Option<i32>,
-    intermediate_size: Option<i32>,
-    max_position_embeddings: Option<i32>,
-    num_attention_heads: Option<i32>,
-    num_hidden_layers: Option<i32>,
-}
-
-#[pymethods]
-impl ModelConfig {
-    fn check_fields(&self) -> Result<(), ConfigError> {
-        if self.hidden_size.is_none() {
-            return Err(ConfigError("hidden_size".to_string()));
-        }
-        if self.intermediate_size.is_none() {
-            return Err(ConfigError("intermediate_size".to_string()));
-        }
-        if self.max_position_embeddings.is_none() {
-            return Err(ConfigError("max_position_embeddings".to_string()));
-        }
-        if self.num_attention_heads.is_none() {
-            return Err(ConfigError("num_attention_heads".to_string()));
-        }
-        if self.num_hidden_layers.is_none() {
-            return Err(ConfigError("num_hidden_layers".to_string()));
+    pub fn download_config(&self) -> Result<(), pyo3::PyErr> {
+        let url = self.get_url();
+        let model_cache_folder = Scan::get_model_cache_folder(&self.path)
+            .ok_or_else(|| {
+                pyo3::exceptions::PyRuntimeError::new_err("Failed to get the model cache folder")
+            })?;
+        let config_path = model_cache_folder.join("config.json");
+        if !config_path.exists() {
+            download_model_config(&url, &config_path)
+                .map_err(|e| PyValueError::new_err(e.to_string()))?;
         }
         Ok(())
     }
+}
 
-    #[new]
-    pub fn new(
-        hidden_size: Option<i32>,
-        intermediate_size: Option<i32>,
-        max_position_embeddings: Option<i32>,
-        num_attention_heads: Option<i32>,
-        num_hidden_layers: Option<i32>,
-    ) -> PyResult<Self> {
+/// A struct representing a generic model config.
+pub struct ModelConfig {
+    hidden_size: i32,
+    intermediate_size: i32,
+    max_position_embeddings: i32,
+    num_attention_heads: i32,
+    num_hidden_layers: i32,
+}
+
+impl ModelConfig {
+    fn new(
+        hidden_size: i32,
+        intermediate_size: i32,
+        max_position_embeddings: i32,
+        num_attention_heads: i32,
+        num_hidden_layers: i32,
+    ) -> Result<Self, PyErr> {
         let config = Self {
             hidden_size,
             intermediate_size,
@@ -97,65 +93,78 @@ impl ModelConfig {
             num_attention_heads,
             num_hidden_layers,
         };
-        match config.check_fields() {
-            Ok(_) => Ok(config),
-            Err(e) => Err(PyErr::new::<PyValueError, _>(format!("ConfigError: {}", e.0))),
+        Ok(config)
+    }
+
+    pub fn from_file(path: &str) -> Result<Self, PyErr>{
+        let config_path: PathBuf;
+        if is_file_local(path) {
+            config_path = Path::new(path).to_path_buf();
+        } else {
+            let config_url = ConfigUrl::new(path);
+            config_url.download_config()?;
+            let model_cache_folder = Scan::get_model_cache_folder(&config_url.path)
+                .ok_or_else(|| {
+                    pyo3::exceptions::PyRuntimeError::new_err("Failed to get the model cache folder")
+                })?;
+            config_path = model_cache_folder.join("config.json");
+    
         }
-    }
+        // Load the config file.
+        let file = File::open(config_path).map_err(|e| {
+            PyErr::new::<PyFileNotFoundError, _>(format!("Failed to open config file: {}", e))
+        })?;
+        let reader = BufReader::new(file);
+        let config_json: serde_json::Value =
+            serde_json::from_reader(reader).map_err(|e| {
+                PyErr::new::<PyValueError, _>(format!("Failed to parse config file: {}", e))
+            })?;
 
-    #[getter]
-    pub fn hidden_size(&self) -> PyResult<Option<i32>> {
-        Ok(self.hidden_size)
-    }
-
-    #[setter]
-    pub fn set_hidden_size(&mut self, value: Option<i32>) -> PyResult<()> {
-        self.hidden_size = value;
-        Ok(())
-    }
-
-    #[getter]
-    pub fn intermediate_size(&self) -> PyResult<Option<i32>> {
-        Ok(self.intermediate_size)
-    }
-
-    #[setter]
-    pub fn set_intermediate_size(&mut self, value: Option<i32>) -> PyResult<()> {
-        self.intermediate_size = value;
-        Ok(())
-    }
-
-    #[getter]
-    pub fn max_position_embeddings(&self) -> PyResult<Option<i32>> {
-        Ok(self.max_position_embeddings)
-    }
-
-    #[setter]
-    pub fn set_max_position_embeddings(&mut self, value: Option<i32>) -> PyResult<()> {
-        self.max_position_embeddings = value;
-        Ok(())
-    }
-
-    #[getter]
-    pub fn num_attention_heads(&self) -> PyResult<Option<i32>> {
-        Ok(self.num_attention_heads)
-    }
-
-    #[setter]
-    pub fn set_num_attention_heads(&mut self, value: Option<i32>) -> PyResult<()> {
-        self.num_attention_heads = value;
-        Ok(())
-    }
-
-    #[getter]
-    pub fn num_hidden_layers(&self) -> PyResult<Option<i32>> {
-        Ok(self.num_hidden_layers)
-    }
-
-    #[setter]
-    pub fn set_num_hidden_layers(&mut self, value: Option<i32>) -> PyResult<()> {
-        self.num_hidden_layers = value;
-        Ok(())
+        // Get the config values.
+        let hidden_size = config_json["hidden_size"]
+            .as_i64()
+            .ok_or_else(|| {
+                PyErr::new::<PyValueError, _>(
+                    "Failed to get the hidden size from the config file",
+                )
+            })? as i32;
+        let intermediate_size = config_json["intermediate_size"]
+            .as_i64()
+            .ok_or_else(|| {
+                PyErr::new::<PyValueError, _>(
+                    "Failed to get the intermediate size from the config file",
+                )
+            })? as i32;
+        let max_position_embeddings = config_json["max_position_embeddings"]
+            .as_i64()
+            .ok_or_else(|| {
+                PyErr::new::<PyValueError, _>(
+                    "Failed to get the max position embeddings from the config file",
+                )
+            })? as i32;
+        let num_attention_heads = config_json["num_attention_heads"]
+            .as_i64()
+            .ok_or_else(|| {
+                PyErr::new::<PyValueError, _>(
+                    "Failed to get the number of attention heads from the config file",
+                )
+            })? as i32;
+        let num_hidden_layers = config_json["num_hidden_layers"]
+            .as_i64()
+            .ok_or_else(|| {
+                PyErr::new::<PyValueError, _>(
+                    "Failed to get the number of hidden layers from the config file",
+                )
+            })? as i32;
+    
+        let config = Self {
+            hidden_size,
+            intermediate_size,
+            max_position_embeddings,
+            num_attention_heads,
+            num_hidden_layers,
+        };
+        Ok(config)
     }
 
     /// Returns a python dictionary containing the model config.
@@ -173,6 +182,31 @@ impl ModelConfig {
     }
 }
 
+#[pyclass(dict, module = "config", name = "ModelConfig")]
+#[pyo3(text_signature = "(self, model)")]
+#[derive(Clone)]
+pub struct PyModelConfig {
+    config: ModelConfig,
+}
+
+impl PyModelConfig {
+    fn new(config: ModelConfig) -> Self {
+        PyModelConfig { config }
+    }
+
+    fn from_file(model: PyModel) -> Self {
+        PyModelConfig::new(ModelConfigImpl::new(model))
+    }
+}
+
+#[pymethods]
+impl PyModelConfig {
+    #[new]
+    fn __new__(model: PyRef<PyModel>) -> Self {
+        PyModelConfig::from_file(model.clone())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -183,38 +217,5 @@ mod tests {
         let model_path = "EleutherAI/gpt-neox-20b";
         let config_url = ConfigUrl::new(model_path);
         assert_eq!(config_url.get_url(), "https://huggingface.co/EleutherAI/gpt-neox-20b/resolve/main/config.json");
-    }
-
-    // Test for the ConfigError struct
-    #[test]
-    fn test_config_error() {
-        let config = ModelConfig::new(None, None, None, None, None);
-        assert_eq!(config.is_err(), true);
-    }
-
-    // Test for the ModelConfig struct
-    #[test]
-    fn test_model_config() {
-        let config = ModelConfig::new(Some(1024), Some(4096), Some(2048), Some(16), Some(32));
-        assert_eq!(config.is_ok(), true);
-    }
-
-    // Test for the ModelConfig struct
-    #[test]
-    fn test_to_dict() {
-        pyo3::prepare_freethreaded_python();
-        let config = ModelConfig::new(Some(1024), Some(4096), Some(2048), Some(16), Some(32)).unwrap();
-        let dict_result = config.to_dict();
-        assert!(dict_result.is_ok());
-        let dict = dict_result.unwrap();
-
-        Python::with_gil(|py| {
-            let dict_ref = dict.as_ref(py);
-            assert_eq!(dict_ref.get_item("hidden_size").unwrap().extract::<i32>().unwrap(), 1024);
-            assert_eq!(dict_ref.get_item("intermediate_size").unwrap().extract::<i32>().unwrap(), 4096);
-            assert_eq!(dict_ref.get_item("max_position_embeddings").unwrap().extract::<i32>().unwrap(), 2048);
-            assert_eq!(dict_ref.get_item("num_attention_heads").unwrap().extract::<i32>().unwrap(), 16);
-            assert_eq!(dict_ref.get_item("num_hidden_layers").unwrap().extract::<i32>().unwrap(), 32);
-        });
     }
 }

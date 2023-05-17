@@ -116,7 +116,7 @@ impl Scan {
 
     /// Create the folders for one model in the AIHA cache folder.
     #[staticmethod]
-    pub fn create_model_cache_folder(model_name: &str) -> std::io::Result<()> {
+    fn create_model_cache_folder(model_name: &str) -> std::io::Result<()> {
         // If model_name contains a / then we need to create an organization folder
         // and a model folder, otherwise we just need to create a model folder
         if model_name.contains("/") {
@@ -139,7 +139,33 @@ impl Scan {
                 fs::create_dir_all(&model_path)?;
             }
         }
+        // Return the path to the model folder
         Ok(())
+    }
+
+    // Get the path to the model folder in the AIHA cache folder.
+    #[staticmethod]
+    pub fn get_model_cache_folder(model_name: &str) -> Option<PathBuf> {
+        if let Err(e) = Scan::create_model_cache_folder(model_name) {
+            eprintln!("Failed to create model cache folder: {}", e);
+        }
+
+        if model_name.contains("/") {
+            let mut model_path = Scan::get_aiha_cache_folder().unwrap();
+            let model_name_split: Vec<&str> = model_name.split("/").collect();
+            let org_name = model_name_split[0];
+            let model_name = model_name_split[1];
+
+            model_path.push(org_name);
+            model_path.push(model_name);
+
+            Some(model_path)
+        } else {
+            let mut model_path = Scan::get_aiha_cache_folder().unwrap();
+            model_path.push(model_name);
+
+            Some(model_path)
+        }
     }
 
     /// Clean the AIHA cache folder.
@@ -214,6 +240,14 @@ mod tests {
         let model_name = "test_org/test_model";
         let model_cache_folder = Scan::create_model_cache_folder(model_name);
         assert!(model_cache_folder.is_ok());
+    }
+
+    // Test for the get_model_cache_folder() method of the Scan struct
+    #[test]
+    fn test_get_model_cache_folder_no_org() {
+        let model_name = "test_model";
+        let model_cache_folder = Scan::get_model_cache_folder(model_name);
+        assert!(model_cache_folder.is_some());
     }
 
     // Test for the clean_cache() method of the Scan struct
