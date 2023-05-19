@@ -1,18 +1,18 @@
 //! Module for analyzing the hardware of the running system.
 use num_cpus;
-use rust_gpu_tools::Device;
-use sys_info;
+use nvml_wrapper::Nvml;
+
 
 /// Returns the operating system of the running system.
-pub fn scan_arch() -> String {
-    let os = sys_info::os_type().unwrap();
+pub fn scan_os() -> String {
+    let os = std::env::consts::OS.to_string();
     os
 }
 
 /// Returns the architecture of the running system.
-pub fn scan_release() -> String {
-    let release = sys_info::os_release().unwrap();
-    release
+pub fn scan_arch() -> String {
+    let arch = std::env::consts::ARCH.to_string();
+    arch
 }
 
 /// Returns the number of physical cores of the running system.
@@ -27,9 +27,21 @@ pub fn scan_cpu_threads() -> u16 {
     threads as u16
 }
 
-/// Returns the number of GPUs of the running system.
-pub fn scan_gpu_count() -> u16 {
-    //  
+/// Returns the number of available GPUs of the running system.
+pub fn scan_gpu_count(os: &str, arch: &str) -> Result<u32, String> {
+    match (os, arch) {
+        ("linux", _) => _scan_gpu_count(),
+        ("windows", _) => _scan_gpu_count(),
+        ("macos", arch) if arch != "aarch64" => _scan_gpu_count(),
+        _ => Err("GPU scan is only supported on Linux, Windows, and macOS (excluding Apple Silicon).".to_string())
+    }
+}
+
+/// Returns the number of available GPUs of the running system for NVIDIA GPUs.
+fn _scan_gpu_count() -> Result<u32, String> {
+    let nvml = Nvml::init().map_err(|e| e.to_string())?;
+    let devices = nvml.device_count().map_err(|e| e.to_string())?;
+    Ok(devices)
 }
 
 #[cfg(test)]
@@ -37,15 +49,15 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_scan_arch() {
-        let arch = scan_arch();
-        assert_eq!(arch, sys_info::os_type().unwrap());
+    fn test_scan_os() {
+        let arch = scan_os();
+        assert_eq!(arch, std::env::consts::OS.to_string());
     }
 
     #[test]
-    fn test_scan_release() {
-        let release = scan_release();
-        assert_eq!(release, sys_info::os_release().unwrap());
+    fn test_scan_arch() {
+        let arch = scan_arch();
+        assert_eq!(arch, std::env::consts::ARCH.to_string());
     }
 
     #[test]
@@ -62,6 +74,13 @@ mod tests {
 
     #[test]
     fn test_scan_gpu_count() {
-        let _gpu_count = scan_gpu_count();
+        let os = std::env::consts::OS.to_string();
+        let arch = std::env::consts::ARCH.to_string();
+        let gpu_count = scan_gpu_count(&os, &arch);
+        if os == "linux" || os == "windows" || (os == "macos" && arch != "aarch64") {
+            assert!(gpu_count.is_ok());
+        } else {
+            assert!(gpu_count.is_err());
+        }
     }
 }
