@@ -20,4 +20,3 @@ crate-type = ["cdylib"]
 [dependencies]
 num_cpus = "1.15.0"
 nvml-wrapper = "0.9.0"
-sysinfo = "0.29.0"
