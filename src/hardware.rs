@@ -9,35 +9,48 @@ use nvml_wrapper::structs::device::CudaComputeCapability;
 /// Struct for storing the hardware information of the running system.
 #[derive(Debug)]
 pub struct Hardware {
+    /// The operating system of the running system.
     pub os: String,
+    /// The architecture of the running system.
     pub arch: String,
+    /// The number of CPU cores of the running system.
     pub cpu_cores: u16,
+    /// The number of CPU threads of the running system.
     pub cpu_threads: u16,
+    /// The number of GPUs of the running system.
     pub gpu_count: u32,
+    /// The GPU devices information of the running system.
     pub nvidia_gpus: Vec<NvidiaDevice>,
 }
 
 /// Trait for GPU devices that provides a method to obtain all information as a string.
 pub trait GPUDevice {
-    // Return a string with all information of the GPU device.
+    /// Return a string with all information of the GPU device.
     fn get_info_string(&self) -> String;
-    // Returns the memory_info of the GPU device.
+    /// Returns the memory_info of the GPU device.
     fn get_memory_info(&self) -> u64;
-    // Returns the memory_info of the GPU device formatted as a string.
+    /// Returns the memory_info of the GPU device formatted as a string.
     fn get_memory_info_formatted(&self) -> String;
-    // Returns the compute_capability of the GPU device formatted as a string.
+    /// Returns the compute_capability of the GPU device formatted as a string.
     fn get_compute_capability_formatted(&self) -> String;
 }
 
 /// Struct for storing the GPU information of the running system.
 #[derive(Debug)]
 pub struct NvidiaDevice {
+    /// The architecture of the NVIDIA GPU device.
     architecture: DeviceArchitecture,
+    /// The brand of the NVIDIA GPU device.
     brand: Brand,
+    /// The compute capability of the NVIDIA GPU device.
     cuda_compute_capability: CudaComputeCapability,
+    /// The memory_info of the NVIDIA GPU device.
     memory_info: u64,
+    /// The name of the NVIDIA GPU device.
     name: String,
+    /// The number of cores of the NVIDIA GPU device.
     num_cores: u32,
+    /// The UUID of the NVIDIA GPU device.
     uuid: String,
 }
 
