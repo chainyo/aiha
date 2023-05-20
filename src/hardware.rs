@@ -17,6 +17,18 @@ pub struct Hardware {
     pub nvidia_gpus: Vec<NvidiaDevice>,
 }
 
+/// Trait for GPU devices that provides a method to obtain all information as a string.
+pub trait GPUDevice {
+    // Return a string with all information of the GPU device.
+    fn get_info_string(&self) -> String;
+    // Returns the memory_info of the GPU device.
+    fn get_memory_info(&self) -> u64;
+    // Returns the memory_info of the GPU device formatted as a string.
+    fn get_memory_info_formatted(&self) -> String;
+    // Returns the compute_capability of the GPU device formatted as a string.
+    fn get_compute_capability_formatted(&self) -> String;
+}
+
 /// Struct for storing the GPU information of the running system.
 #[derive(Debug)]
 pub struct NvidiaDevice {
@@ -27,6 +39,39 @@ pub struct NvidiaDevice {
     name: String,
     num_cores: u32,
     uuid: String,
+}
+
+/// Implementation of GPUDevice for NvidiaDevice.
+impl GPUDevice for NvidiaDevice {
+    // Returns the memory_info of the GPU device.
+    fn get_info_string(&self) -> String {
+        format!(
+            "uuid: {}\nname: NVIDIA {}\narchitecture: {:?}\nbrand: {:?}\nmemory: {}\ncompute capability: {}\ncores: {}",
+            self.uuid,
+            self.name,
+            self.architecture,
+            self.brand,
+            self.get_memory_info_formatted(),
+            self.get_compute_capability_formatted(),
+            self.num_cores,
+        )
+    }
+    // Returns the memory_info of the GPU device.
+    fn get_memory_info(&self) -> u64 {
+        self.memory_info
+    }
+    // Returns the memory_info of the GPU device formatted as a string.
+    fn get_memory_info_formatted(&self) -> String {
+        let memory_info = self.memory_info;
+        let memory_info = memory_info as f64;
+        let memory_info = memory_info / 1024.0 / 1024.0 / 1024.0;
+        format!("{:.2} GB", memory_info)
+    }
+    // Returns the compute_capability of the GPU device formatted as a string.
+    fn get_compute_capability_formatted(&self) -> String {
+        let compute_capability = &self.cuda_compute_capability;
+        format!("{}.{}", compute_capability.major, compute_capability.minor)
+    }
 }
 
 /// Scan the hardware of the running system and return a Hardware struct.
@@ -82,14 +127,12 @@ pub fn scan_hardware() -> Result<Hardware, String> {
 
 /// Returns the operating system of the running system.
 pub fn scan_os() -> String {
-    let os = std::env::consts::OS.to_string();
-    os
+    std::env::consts::OS.to_string()
 }
 
 /// Returns the architecture of the running system.
 pub fn scan_arch() -> String {
-    let arch = std::env::consts::ARCH.to_string();
-    arch
+    std::env::consts::ARCH.to_string()
 }
 
 /// Returns the number of physical cores of the running system.
@@ -124,6 +167,19 @@ fn _scan_gpu_count(nvml: &Nvml) -> Result<u32, String> {
 mod tests {
     use super::*;
 
+    /// Setup a Hardware struct for testing.
+    fn setup_nvidia_device() -> NvidiaDevice {
+        NvidiaDevice {
+            architecture: DeviceArchitecture::Kepler,
+            brand: Brand::Tesla,
+            cuda_compute_capability: CudaComputeCapability { major: 3, minor: 7 },
+            memory_info: 4096 * 1024 * 1024,
+            name: "Tesla K80".to_string(),
+            num_cores: 2496,
+            uuid: "GPU-4c2b7f7c-0b7e-0e1a-1e1f-2f3e4d5e6f7g".to_string(),
+        }
+    }
+
     #[test]
     fn test_struct_hardware() {
         let hardware = Hardware {
@@ -133,15 +189,7 @@ mod tests {
             cpu_threads: 16,
             gpu_count: 1,
             nvidia_gpus: vec![
-                NvidiaDevice {
-                    architecture: DeviceArchitecture::Kepler,
-                    brand: Brand::Tesla,
-                    cuda_compute_capability: CudaComputeCapability { major: 3, minor: 7 },
-                    memory_info: 4096 * 1024 * 1024,
-                    name: "Tesla K80".to_string(),
-                    num_cores: 2496,
-                    uuid: "GPU-4c2b7f7c-0b7e-0e1a-1e1f-2f3e4d5e6f7g".to_string(),
-                }
+                setup_nvidia_device(),
             ],
         };
     
@@ -164,15 +212,7 @@ mod tests {
 
     #[test]
     fn test_struct_nvidia_device() {
-        let nvidia_device = NvidiaDevice {
-            architecture: DeviceArchitecture::Kepler,
-            brand: Brand::Tesla,
-            cuda_compute_capability: CudaComputeCapability { major: 3, minor: 7 },
-            memory_info: 4294967296,
-            name: "Tesla K80".to_string(),
-            num_cores: 2496,
-            uuid: "GPU-4c2b7f7c-0b7e-0e1a-1e1f-2f3e4d5e6f7g".to_string(),
-        };
+        let nvidia_device = setup_nvidia_device();
         assert_eq!(nvidia_device.architecture, DeviceArchitecture::Kepler);
         assert_eq!(nvidia_device.brand, Brand::Tesla);
         assert_eq!(nvidia_device.cuda_compute_capability, CudaComputeCapability { major: 3, minor: 7 });
@@ -180,6 +220,27 @@ mod tests {
         assert_eq!(nvidia_device.name, "Tesla K80".to_string());
         assert_eq!(nvidia_device.num_cores, 2496);
         assert_eq!(nvidia_device.uuid, "GPU-4c2b7f7c-0b7e-0e1a-1e1f-2f3e4d5e6f7g".to_string());
+    }
+
+    #[test]
+    fn test_nvidia_device_get_info_string() {
+        let device = setup_nvidia_device();
+        let expected_info_string = "uuid: GPU-4c2b7f7c-0b7e-0e1a-1e1f-2f3e4d5e6f7g\nname: NVIDIA Tesla K80\narchitecture: Kepler\nbrand: Tesla\nmemory: 4.00 GB\ncompute capability: 3.7\ncores: 2496";
+        assert_eq!(device.get_info_string(), expected_info_string);
+    }
+
+    #[test]
+    fn test_nvidia_device_get_memory_info() {
+        let device = setup_nvidia_device();
+        let expected_info = 4294967296;
+        assert_eq!(device.get_memory_info(), expected_info);
+    }
+
+    #[test]
+    fn test_nvidia_device_get_memory_info_string() {
+        let device = setup_nvidia_device();
+        let expected_info_string = "4.00 GB".to_string();
+        assert_eq!(device.get_memory_info_formatted(), expected_info_string);
     }
 
     #[test]
