@@ -84,7 +84,21 @@ pub fn scan_hardware() -> Result<Hardware, String> {
     let cpu_cores = scan_cpu_cores();
     let cpu_threads = scan_cpu_threads();
     // Get the number of available GPUs or return an error.
-    let nvml = Nvml::init().map_err(|e| e.to_string())?;
+    let nvml = match Nvml::init() {
+        Ok(nvml) => nvml,
+        Err(_e) => {
+            // If NVML initialization fails, return a Hardware struct with 0 GPU count and an empty nvidia_gpus vector.
+            println!("NVIDIA drivers are not installed. If you have NVIDIA GPUs, see installation instructions at: https://www.nvidia.com/download/index.aspx");
+            return Ok(Hardware {
+                os,
+                arch,
+                cpu_cores,
+                cpu_threads,
+                gpu_count: 0,
+                nvidia_gpus: Vec::new(),
+            });
+        }
+    };
     let gpu_count = scan_gpu_count(&os, &arch, &nvml)?;
     // If gpu_count is 0, then the system does not have any NVIDIA GPUs,
     // so we can return the Hardware struct. Otherwise, we need to get
@@ -245,15 +259,19 @@ mod tests {
 
     #[test]
     fn test_scan_hardware() {
-        let os = std::env::consts::OS.to_string();
-        let arch = std::env::consts::ARCH.to_string();
         let hardware = scan_hardware();
-        if os == "linux" || os == "windows" || (os == "macos" && arch != "aarch64") {
-            assert!(hardware.is_ok());
-        } else {
-            assert!(hardware.is_err());
-        }
+        assert!(hardware.is_ok());
+        let hardware = hardware.unwrap();
+        assert_eq!(hardware.os, std::env::consts::OS.to_string());
+        assert_eq!(hardware.arch, std::env::consts::ARCH.to_string());
+        assert_eq!(hardware.cpu_cores, num_cpus::get_physical() as u16);
+        assert_eq!(hardware.cpu_threads, num_cpus::get() as u16);
+        // This test is run on a machine with no GPUs and without NVIDIA drivers.
+        // Therefore, we expect the GPU count to be 0 and the NVIDIA GPU vector to be empty.
+        assert_eq!(hardware.gpu_count, 0);
+        assert_eq!(hardware.nvidia_gpus.len(), 0);
     }
+    
 
     #[test]
     fn test_scan_os() {
