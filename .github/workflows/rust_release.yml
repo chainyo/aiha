@@ -1,5 +1,8 @@
 name: Rust Release
 
+env:
+  CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
+
 on:
   push:
     tags:
@@ -24,5 +27,4 @@ jobs:
           key: ubuntu-latest-cargo-registry-${{ hashFiles('**/Cargo.toml') }}
 
       - name: Publish package rust
-        working-directory: ./src
         run: cargo publish --token ${CRATES_TOKEN}

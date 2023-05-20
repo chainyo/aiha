@@ -1,6 +1,8 @@
 #![deny(missing_docs)]
 //! # AIHA - AI Hardware Advisor
 //! 
+//! ![AI Hardware Advisor](path/to/image.png)
+//! 
 //! Introducing the **AI Hardware Advisor (AIHA)** – Unlock the Power of Optimal Hardware for **Your AI Project**!
 //! 
 //! Looking to embark on an AI journey? Look no further! **AI Hardware Advisor (AIHA)** is the ultimate tool that empowers
