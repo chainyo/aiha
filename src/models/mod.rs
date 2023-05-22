@@ -19,6 +19,8 @@ pub use gptj::GPTJModelConfig;
 pub mod gptneo;
 pub use gptneo::GPTNeoModelConfig;
 // Llama model
+pub mod llama;
+pub use llama::LlamaModelConfig;
 // OPT model
 pub mod opt;
 pub use opt::OPTModelConfig;

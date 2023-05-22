@@ -92,21 +92,21 @@ pub enum ModelLibraries {
 /// Generic trait for Hugging Face models
 pub trait ModelConfig {
     /// Returns the model hidden size
-    fn hidden_size(&self) -> i32;
+    fn hidden_size(&self) -> &i32;
     /// Returns the model intermediate size
-    fn intermediate_size(&self) -> i32;
+    fn intermediate_size(&self) -> &i32;
     /// Returns the model max position embeddings
-    fn max_position_embeddings(&self) -> i32;
+    fn max_position_embeddings(&self) -> &i32;
     /// Returns the model number of attention heads
-    fn num_attention_heads(&self) -> i32;
+    fn num_attention_heads(&self) -> &i32;
     /// Returns the model number of hidden layers
-    fn num_hidden_layers(&self) -> i32;
+    fn num_hidden_layers(&self) -> &i32;
     /// Returns the model repository name
-    fn repo_name(&self) -> String;
+    fn repo_name(&self) -> &str;
     /// Returns the model type
-    fn model_type(&self) -> String;
+    fn model_type(&self) -> &str;
     /// Returns the model libraries
-    fn available_libraries(&self) -> Vec<ModelLibraries>;
+    fn available_libraries(&self) -> &[ModelLibraries];
 }
 
 #[cfg(test)]
@@ -118,47 +118,47 @@ mod tests {
     struct MockModelConfig;
 
     impl ModelConfig for MockModelConfig {
-        fn hidden_size(&self) -> i32 {
-            1024
+        fn hidden_size(&self) -> &i32 {
+            &1024
         }
 
-        fn intermediate_size(&self) -> i32 {
-            4096
+        fn intermediate_size(&self) -> &i32 {
+            &4096
         }
 
-        fn max_position_embeddings(&self) -> i32 {
-            512
+        fn max_position_embeddings(&self) -> &i32 {
+            &512
         }
 
-        fn num_attention_heads(&self) -> i32 {
-            16
+        fn num_attention_heads(&self) -> &i32 {
+            &16
         }
 
-        fn num_hidden_layers(&self) -> i32 {
-            12
+        fn num_hidden_layers(&self) -> &i32 {
+            &12
         }
 
-        fn repo_name(&self) -> String {
-            String::from("mock")
+        fn repo_name(&self) -> &str {
+            "mock"
         }
 
-        fn model_type(&self) -> String {
-            String::from("mock")
+        fn model_type(&self) -> &str {
+            "mock"
         }
 
-        fn available_libraries(&self) -> Vec<ModelLibraries> {
-            vec![ModelLibraries::PyTorch]
+        fn available_libraries(&self) -> &[ModelLibraries] {
+            &[ModelLibraries::PyTorch]
         }
     }
 
     #[test]
     fn test_hub_model_config() {
         let config = MockModelConfig;
-        assert_eq!(config.hidden_size(), 1024);
-        assert_eq!(config.intermediate_size(), 4096);
-        assert_eq!(config.max_position_embeddings(), 512);
-        assert_eq!(config.num_attention_heads(), 16);
-        assert_eq!(config.num_hidden_layers(), 12);
+        assert_eq!(*config.hidden_size(), 1024);
+        assert_eq!(*config.intermediate_size(), 4096);
+        assert_eq!(*config.max_position_embeddings(), 512);
+        assert_eq!(*config.num_attention_heads(), 16);
+        assert_eq!(*config.num_hidden_layers(), 12);
         assert_eq!(config.repo_name(), "mock");
         assert_eq!(config.model_type(), "mock");
         assert_eq!(config.available_libraries(), vec![ModelLibraries::PyTorch]);

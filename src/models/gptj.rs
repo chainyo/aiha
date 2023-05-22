@@ -50,36 +50,36 @@ impl GPTJModelConfig {
 
 /// Implementation of the `ModelConfig` trait for `GPTJModelConfig`
 impl ModelConfig for GPTJModelConfig {
-    fn hidden_size(&self) -> i32 {
-        self.n_embd
+    fn hidden_size(&self) -> &i32 {
+        &self.n_embd
     }
 
-    fn intermediate_size(&self) -> i32 {
-        self.n_inner
+    fn intermediate_size(&self) -> &i32 {
+        &self.n_inner
     }
 
-    fn max_position_embeddings(&self) -> i32 {
-        self.n_positions
+    fn max_position_embeddings(&self) -> &i32 {
+        &self.n_positions
     }
 
-    fn num_attention_heads(&self) -> i32 {
-        self.n_head
+    fn num_attention_heads(&self) -> &i32 {
+        &self.n_head
     }
 
-    fn num_hidden_layers(&self) -> i32 {
-        self.n_layer
+    fn num_hidden_layers(&self) -> &i32 {
+        &self.n_layer
     }
 
-    fn repo_name(&self) -> String {
-        self.repo_name.clone()
+    fn repo_name(&self) -> &str {
+        &self.repo_name
     }
 
-    fn model_type(&self) -> String {
-        self.model_type.clone()
+    fn model_type(&self) -> &str {
+        &self.model_type
     }
 
-    fn available_libraries(&self) -> Vec<ModelLibraries> {
-        self.available_libraries.clone()
+    fn available_libraries(&self) -> &[ModelLibraries] {
+        &self.available_libraries
     }
 }
 
@@ -99,13 +99,13 @@ mod tests {
             "gptj".to_string(),
             vec![ModelLibraries::PyTorch, ModelLibraries::TensorFlow],
         );
-        assert_eq!(gptj_model_config.n_embd, 1024);
-        assert_eq!(gptj_model_config.n_inner, 4096);
-        assert_eq!(gptj_model_config.n_positions, 1024);
-        assert_eq!(gptj_model_config.n_head, 16);
-        assert_eq!(gptj_model_config.n_layer, 28);
-        assert_eq!(gptj_model_config.repo_name, "EleutherAI/gpt-j-6B".to_string());
-        assert_eq!(gptj_model_config.model_type, "gptj".to_string());
+        assert_eq!(*gptj_model_config.hidden_size(), 1024);
+        assert_eq!(*gptj_model_config.intermediate_size(), 4096);
+        assert_eq!(*gptj_model_config.max_position_embeddings(), 1024);
+        assert_eq!(*gptj_model_config.num_attention_heads(), 16);
+        assert_eq!(*gptj_model_config.num_hidden_layers(), 28);
+        assert_eq!(gptj_model_config.repo_name(), "EleutherAI/gpt-j-6B".to_string());
+        assert_eq!(gptj_model_config.model_type(), "gptj".to_string());
         assert_eq!(
             gptj_model_config.available_libraries,
             vec![ModelLibraries::PyTorch, ModelLibraries::TensorFlow]

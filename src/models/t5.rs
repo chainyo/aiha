@@ -49,36 +49,36 @@ impl T5ModelConfig {
 
 /// Implementation of the `ModelConfig` trait for `T5ModelConfig`
 impl ModelConfig for T5ModelConfig {
-    fn hidden_size(&self) -> i32 {
-        self.d_model
+    fn hidden_size(&self) -> &i32 {
+        &self.d_model
     }
 
-    fn intermediate_size(&self) -> i32 {
-        self.d_ff
+    fn intermediate_size(&self) -> &i32 {
+        &self.d_ff
     }
 
-    fn max_position_embeddings(&self) -> i32 {
-        self.n_positions
+    fn max_position_embeddings(&self) -> &i32 {
+        &self.n_positions
     }
 
-    fn num_attention_heads(&self) -> i32 {
-        self.n_heads
+    fn num_attention_heads(&self) -> &i32 {
+        &self.n_heads
     }
 
-    fn num_hidden_layers(&self) -> i32 {
-        self.n_layers
+    fn num_hidden_layers(&self) -> &i32 {
+        &self.n_layers
     }
 
-    fn repo_name(&self) -> String {
-        self.repo_name.clone()
+    fn repo_name(&self) -> &str {
+        &self.repo_name
     }
 
-    fn model_type(&self) -> String {
-        self.model_type.clone()
+    fn model_type(&self) -> &str {
+        &self.model_type
     }
 
-    fn available_libraries(&self) -> Vec<ModelLibraries> {
-        self.available_libraries.clone()
+    fn available_libraries(&self) -> &[ModelLibraries] {
+        &self.available_libraries
     }
 }
 
@@ -99,11 +99,11 @@ mod tests {
             vec![ModelLibraries::PyTorch],
         );
 
-        assert_eq!(t5_model_config.hidden_size(), 1024);
-        assert_eq!(t5_model_config.intermediate_size(), 4096);
-        assert_eq!(t5_model_config.max_position_embeddings(), 512);
-        assert_eq!(t5_model_config.num_attention_heads(), 16);
-        assert_eq!(t5_model_config.num_hidden_layers(), 12);
+        assert_eq!(*t5_model_config.hidden_size(), 1024);
+        assert_eq!(*t5_model_config.intermediate_size(), 4096);
+        assert_eq!(*t5_model_config.max_position_embeddings(), 512);
+        assert_eq!(*t5_model_config.num_attention_heads(), 16);
+        assert_eq!(*t5_model_config.num_hidden_layers(), 12);
         assert_eq!(t5_model_config.repo_name(), "t5-base");
         assert_eq!(t5_model_config.model_type(), "t5");
         assert_eq!(
