@@ -1,10 +1,13 @@
 <div align="center">
   <img src="https://github.com/chainyo/aiha/blob/main/assets/aiha-banner.png?raw=true" />
+
   <br>
-  [![Cargo Version](https://img.shields.io/crates/v/aiha)](https://crates.io/crates/aiha)
-  [![Documentation](https://docs.rs/aiha/badge.svg)](https://docs.rs/aiha)
-  [![Pypi Version](https://img.shields.io/pypi/v/aiha)](https://pypi.org/project/aiha/)
-  [![License](https://img.shields.io/crates/l/aiha)](https://github.com/chainyo/aiha/blob/main/LICENSE)
+
+[![Cargo Version](https://img.shields.io/crates/v/aiha)](https://crates.io/crates/aiha)
+[![Pypi Version](https://img.shields.io/pypi/v/aiha)](https://pypi.org/project/aiha/)
+[![Documentation](https://docs.rs/aiha/badge.svg)](https://docs.rs/aiha)
+[![License](https://img.shields.io/crates/l/aiha)](https://github.com/chainyo/aiha/blob/main/LICENSE)
+
 </div>
 
 ---
