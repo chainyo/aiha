@@ -12,6 +12,7 @@
 //! for inference and training any model on the esteemed Hugging Face Hub.
 //!
 pub mod hardware;
+pub mod hub;
 pub mod models;
 
 pub use hardware::{ scan_hardware, Hardware, NvidiaDevice };
