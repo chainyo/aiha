@@ -1,15 +1,17 @@
 //! Module for interacting with Hugging Face Hub.
 use std::collections::{HashSet, HashMap};
 use std::error::Error;
+use std::fmt;
+use std::ops::Not;
+
 use percent_encoding::{ utf8_percent_encode, AsciiSet, CONTROLS };
 use reqwest::{Client, header::HeaderMap};
 use serde::Deserialize;
-use serde_json::{Value, from_value, json};
+use serde_json::Value;
 use tokio::time::Duration;
 
-/// The set of characters that are percent-encoded in the path segment of a URI.
+
 const CUSTOM_ENCODE_SET: &AsciiSet = &CONTROLS.add(b' ').add(b'/').add(b':').add(b'@');
-/// The Hugging Face Hub API endpoint
 const HUB_ENDPOINT: &str = "https://huggingface.co";
 
 /// Struct for storing the files metadata
@@ -53,7 +55,7 @@ impl Siblings {
     }
     /// Get the list of siblings as a vector of strings
     pub fn get_siblings(&self) -> Vec<&'_ String> {
-        self.siblings.iter().map(|sibling| sibling).collect()
+        self.siblings.iter().collect()
     }
 }
 
@@ -80,6 +82,14 @@ impl Config {
             model_type,
         }
     }
+    /// Get the list of architectures as a vector of strings
+    pub fn get_architectures(&self) -> Vec<&'_ String> {
+        self.architectures.iter().collect()
+    }
+    /// Get the model_type as a string
+    pub fn get_model_type(&self) -> &String {
+        &self.model_type
+    }
 }
 
 /// Implement the partial equality for the `Config` struct
@@ -94,20 +104,12 @@ impl PartialEq for Config {
 pub struct ModelInfo {
     /// The model ID of the repository (e.g. `username/repo_name`)
     model_id: Option<String>,
-    /// The repository sha at this revision
-    sha: Option<String>,
-    /// The last modified date of the repository
-    last_modified: Option<String>,
     /// The associated tags of the repository
     tags: Option<Vec<String>>,
     /// The pipeline tag of the repository
     pipeline_tag: Option<String>,
     /// The siblings of the repository
     siblings: Option<Siblings>,
-    /// Whether the repository is private or not
-    private: bool,
-    /// The name of the author of the repository
-    author: Option<String>,
     /// The config file associated with the repository
     config: Option<Config>,
     /// The security status (e.g. `{"containsInfected": False}`)
@@ -119,40 +121,73 @@ impl ModelInfo {
     /// Create a new ModelInfo struct
     pub fn new(
         model_id: Option<String>,
-        sha: Option<String>,
-        last_modified: Option<String>,
         tags: Option<Vec<String>>,
         pipeline_tag: Option<String>,
         siblings: Option<Siblings>,
-        private: bool,
-        author: Option<String>,
         config: Option<Config>,
         security_status: Option<HashMap<String, Value>>,
     ) -> Self {
         Self {
             model_id,
-            sha,
-            last_modified,
             tags,
             pipeline_tag,
             siblings,
-            private,
-            author,
             config,
             security_status,
         }
     }
+    /// Get the siblings of the repository
+    pub fn get_siblings(&self) -> Option<&'_ Siblings> {
+        self.siblings.as_ref()
+    }
+    /// Get the config model_type of the repository
+    pub fn get_model_type(&self) -> Option<&'_ String> {
+        self.config.as_ref().map(|config| config.get_model_type())
+    }
+    /// Get the config architectures of the repository
+    pub fn get_architectures(&self) -> Option<Vec<&'_ String>> {
+        self.config.as_ref().map(|config| config.get_architectures())
+    }
+    /// Check for security vulnerabilities
+    pub fn has_vulnerabilities(&self) -> bool {
+        if let Some(security_status) = &self.security_status {
+            if let Some(true) = security_status.get("hasUnsafeFile").and_then(|v| v.as_bool()) {
+                return true;
+            }
+            if let Some(value) = security_status
+                .get("scansDone").map(|v| !v.is_null().not()) {
+                    if !value {
+                        return true;
+                    }
+                }
+            if let Some(value) = security_status
+                .get("clamAVInfectedFiles").map(|v| !v.is_null().not()) {
+                    if !value {
+                        return true;
+                    }
+                }
+            if let Some(value) = security_status
+                .get("dangerousPickles").map(|v| !v.is_null().not()) {
+                    if !value {
+                        return true;
+                    }
+                }
+        }
+        false
+    }
+}
 
-    /// Return a string representation of the ModelInfo struct
-    fn to_string(&self) -> String {
-        let mut result = format!("Model Name: {:?}", self.model_id);
+/// Implement the display of the ModelInfo struct
+impl fmt::Display for ModelInfo {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Model Name: {:?}", self.model_id)?;
         if let Some(tags) = &self.tags {
-            result += &format!(", Tags: {:?}", tags);
+            write!(f, ", Tags: {:?}", tags)?;
         }
         if let Some(pipeline_tag) = &self.pipeline_tag {
-            result += &format!(", Task: {:?}", pipeline_tag);
+            write!(f, ", Task: {:?}", pipeline_tag)?;
         }
-        result
+        Ok(())
     }
 }
 
@@ -173,13 +208,9 @@ impl From<serde_json::Value> for ModelInfo {
         );
         ModelInfo::new(
             response_json["id"].as_str().map(|s| s.to_string()),
-            response_json["sha"].as_str().map(|s| s.to_string()),
-            response_json["lastModified"].as_str().map(|s| s.to_string()),
             response_json["tags"].as_array().map(|a| a.iter().map(|v| v.as_str().unwrap().to_string()).collect()),
             response_json["pipeline_tag"].as_str().map(|s| s.to_string()),
             Some(siblings),
-            response_json["private"].as_bool().unwrap_or(false),
-            response_json["author"].as_str().map(|s| s.to_string()),
             Some(config),
             serde_json::from_value(response_json["securityStatus"].clone()).unwrap_or_default(),
         )
@@ -216,7 +247,7 @@ fn deduplicate_user_agent(user_agent: &str) -> String {
 }
 
 /// Make a request to the Hugging Face Hub API to retrieve the model info
-async fn retrieve_model_info(
+pub async fn retrieve_model_info(
     repo_id: &str,
     revision: Option<&str>,
     timeout: Option<f32>,
@@ -224,7 +255,7 @@ async fn retrieve_model_info(
     token: Option<impl ToString>,
 ) -> Result<ModelInfo, Box<dyn Error>> {
     let path = if let Some(rev) = revision.as_ref() {
-        let encoded_revision = utf8_percent_encode(rev, &CUSTOM_ENCODE_SET).to_string();
+        let encoded_revision = utf8_percent_encode(rev, CUSTOM_ENCODE_SET).to_string();
         format!("{}/api/models/{}/revision/{}", HUB_ENDPOINT, repo_id, encoded_revision)
     } else {
         format!("{}/api/models/{}", HUB_ENDPOINT, repo_id)
@@ -274,6 +305,44 @@ async fn retrieve_model_info(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use serde_json::{from_value, json};
+
+    fn create_model_info(vulnerabilities: bool) -> ModelInfo {
+        let siblings = Siblings::new(
+            vec!["pytorch_model.bin".to_string(), "config.json".to_string(), "vocab.txt".to_string()]
+        );
+        let config = Config::new(vec!["GPTJForCausalLM".to_string()], "gptj".to_string());
+        let security_status = if vulnerabilities {
+            Some(from_value(json!({
+                "scansDone": null,
+                "dangerousPickles": null,
+                "hasUnsafeFile": true,
+                "repositoryId": "models/EleutherAI/gpt-j-6b",
+                "revision": "f98c709453c9402b1309b032f40df1c10ad481a2",
+                "clamAVInfectedFiles": vec![
+                    "pytorch_model.bin".to_string(),
+                    "config.json".to_string(),
+                    "vocab.txt".to_string()]
+            })).unwrap())
+        } else {
+            Some(from_value(json!({
+                "scansDone": null,
+                "dangerousPickles": null,
+                "hasUnsafeFile": false,
+                "repositoryId": "models/EleutherAI/gpt-j-6b",
+                "revision": "f98c709453c9402b1309b032f40df1c10ad481a2",
+                "clamAVInfectedFiles": null,
+            })).unwrap())
+        };
+        ModelInfo::new(
+            Some("EleutherAI/gpt-j-6b".to_string()),
+            Some(vec!["causal-lm".to_string(), "pytorch".to_string()]),
+            Some("text-generation".to_string()),
+            Some(siblings),
+            Some(config),
+            security_status,
+        )
+    }
 
     #[test]
     fn test_custom_encode_set() {
@@ -320,13 +389,9 @@ mod tests {
     #[test]
     fn test_new_model_info() {
         let model_id = Some("username/repo_name".to_string());
-        let sha = Some("1234567890abcdef".to_string());
-        let last_modified = Some("2022-01-01T00:00:00Z".to_string());
         let tags = Some(vec!["tag1".to_string(), "tag2".to_string()]);
         let pipeline_tag = Some("pipeline-tag".to_string());
         let siblings = Some(Siblings::new(vec!["sibling1".to_string(), "sibling2".to_string()]));
-        let private = true;
-        let author = Some("John Doe".to_string());
         let architectures = vec!["x86_64".to_string(), "armv7".to_string()];
         let model_type = "image_classification".to_string();
         let config = Some(Config::new(architectures, model_type));
@@ -334,27 +399,55 @@ mod tests {
 
         let model_info = ModelInfo::new(
             model_id.clone(),
-            sha.clone(),
-            last_modified.clone(),
             tags.clone(),
             pipeline_tag.clone(),
             siblings.clone(),
-            private.clone(),
-            author.clone(),
             config.clone(),
             security_status.clone(),
         );
 
         assert_eq!(model_info.model_id, model_id);
-        assert_eq!(model_info.sha, sha);
-        assert_eq!(model_info.last_modified, last_modified);
         assert_eq!(model_info.tags, tags);
         assert_eq!(model_info.pipeline_tag, pipeline_tag);
         assert_eq!(model_info.siblings, siblings);
-        assert_eq!(model_info.private, private);
-        assert_eq!(model_info.author, author);
         assert_eq!(model_info.config, config);
         assert_eq!(model_info.security_status, security_status);
+    }
+
+    #[test]
+    fn test_model_info_get_siblings() {
+        let model_info = create_model_info(false);
+        assert_eq!(
+            model_info.get_siblings(),
+            Some(&Siblings {
+                siblings: vec![
+                    "pytorch_model.bin".to_string(), "config.json".to_string(), "vocab.txt".to_string()
+                ]
+            })
+        );
+    }
+
+    #[test]
+    fn test_model_info_get_model_type() {
+        let model_info = create_model_info(false);
+        assert_eq!(model_info.get_model_type(), Some(&"gptj".to_string()));
+    }
+
+    #[test]
+    fn test_model_info_get_architectures() {
+        let model_info = create_model_info(false);
+        assert_eq!(
+            model_info.get_architectures(),
+            Some(vec![&"GPTJForCausalLM".to_string()])
+        );
+    }
+
+    #[test]
+    fn test_model_info_check_security() {
+        let model_info = create_model_info(false);
+        assert!(!model_info.has_vulnerabilities());
+        let model_info = create_model_info(true);
+        assert!(model_info.has_vulnerabilities());
     }
 
     #[test]
@@ -364,13 +457,9 @@ mod tests {
         let pipeline_tag = Some("task1".to_string());
         let model_info = ModelInfo {
             model_id,
-            sha: None,
-            last_modified: None,
             tags,
             pipeline_tag,
             siblings: None,
-            private: false,
-            author: None,
             config: None,
             security_status: None,
         };
@@ -443,8 +532,6 @@ mod tests {
 
         let model_info = result.unwrap();
         assert_eq!(model_info.model_id, Some("EleutherAI/gpt-j-6b".to_string()));
-        assert_eq!(model_info.sha, Some("f98c709453c9402b1309b032f40df1c10ad481a2".to_string()));
-        assert_eq!(model_info.last_modified, Some("2023-03-29T19:30:56.000Z".to_string()));
         assert_eq!(model_info.tags, Some(
             vec![
                 "pytorch".to_string(),
@@ -480,8 +567,6 @@ mod tests {
                 "vocab.json"
             ]
         );
-        assert_eq!(model_info.private, false);
-        assert_eq!(model_info.author, Some("EleutherAI".to_string()));
         assert_eq!(model_info.config.as_ref().unwrap().architectures, vec!["GPTJForCausalLM".to_string()]);
         assert_eq!(model_info.config.as_ref().unwrap().model_type, "gptj".to_string());
         assert_eq!(
