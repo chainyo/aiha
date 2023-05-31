@@ -4,7 +4,7 @@ use std::error::Error;
 use percent_encoding::{ utf8_percent_encode, AsciiSet, CONTROLS };
 use reqwest::{Client, header::HeaderMap};
 use serde::Deserialize;
-use serde_json::Value;
+use serde_json::{Value, from_value, json};
 use tokio::time::Duration;
 
 /// The set of characters that are percent-encoded in the path segment of a URI.
@@ -439,19 +439,61 @@ mod tests {
         let token = Some("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");
 
         let result = retrieve_model_info(repo_id, revision, timeout, files_metadata, token).await;
-
         assert!(result.is_ok());
+
         let model_info = result.unwrap();
-        assert_eq!(model_info.model_id, Some("model_id".to_string()));
-        assert_eq!(model_info.sha, Some("model_sha".to_string()));
-        assert_eq!(model_info.last_modified, Some("2022-01-01T00:00:00Z".to_string()));
-        assert_eq!(model_info.tags, Some(vec!["tag1".to_string(), "tag2".to_string()]));
-        assert_eq!(model_info.pipeline_tag, Some("pipeline_tag".to_string()));
-        assert_eq!(model_info.siblings.unwrap().get_siblings(), vec!["sibling1.txt", "sibling2.txt"]);
+        assert_eq!(model_info.model_id, Some("EleutherAI/gpt-j-6b".to_string()));
+        assert_eq!(model_info.sha, Some("f98c709453c9402b1309b032f40df1c10ad481a2".to_string()));
+        assert_eq!(model_info.last_modified, Some("2023-03-29T19:30:56.000Z".to_string()));
+        assert_eq!(model_info.tags, Some(
+            vec![
+                "pytorch".to_string(),
+                "tf".to_string(),
+                "jax".to_string(),
+                "gptj".to_string(),
+                "text-generation".to_string(),
+                "en".to_string(),
+                "dataset:the_pile".to_string(),
+                "arxiv:2104.09864".to_string(),
+                "arxiv:2101.00027".to_string(),
+                "transformers".to_string(),
+                "causal-lm".to_string(),
+                "license:apache-2.0".to_string(),
+                "has_space".to_string(),
+            ]
+        ));
+        assert_eq!(model_info.pipeline_tag, Some("text-generation".to_string()));
+        assert_eq!(
+            model_info.siblings.unwrap().get_siblings(),
+            vec![
+                ".gitattributes",
+                "README.md",
+                "added_tokens.json",
+                "config.json",
+                "flax_model.msgpack",
+                "merges.txt",
+                "pytorch_model.bin",
+                "special_tokens_map.json",
+                "tf_model.h5",
+                "tokenizer.json",
+                "tokenizer_config.json",
+                "vocab.json"
+            ]
+        );
         assert_eq!(model_info.private, false);
-        assert_eq!(model_info.author, Some("author_name".to_string()));
-        assert_eq!(model_info.config.as_ref().unwrap().architectures, vec!["arch1".to_string(), "arch2".to_string()]);
-        assert_eq!(model_info.config.as_ref().unwrap().model_type, "gpt-j".to_string());
-        assert_eq!(model_info.security_status, Some(HashMap::new()));
+        assert_eq!(model_info.author, Some("EleutherAI".to_string()));
+        assert_eq!(model_info.config.as_ref().unwrap().architectures, vec!["GPTJForCausalLM".to_string()]);
+        assert_eq!(model_info.config.as_ref().unwrap().model_type, "gptj".to_string());
+        assert_eq!(
+            model_info.security_status,
+            Some(from_value(json!({
+                "scansDone": null,
+                "dangerousPickles": null,
+                "hasUnsafeFile": false,
+                "repositoryId": "models/EleutherAI/gpt-j-6b",
+                "revision": "f98c709453c9402b1309b032f40df1c10ad481a2",
+                "clamAVInfectedFiles": null,
+            })).unwrap())
+        );
     }
 }
