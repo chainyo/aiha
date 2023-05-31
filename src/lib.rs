@@ -36,3 +36,10 @@ pub use models::{
     T5ModelConfig,
     T5Params,
 };
+pub use hub::{
+    retrieve_model_info,
+    Config,
+    HubFile,
+    ModelInfo,
+    Siblings,
+};
