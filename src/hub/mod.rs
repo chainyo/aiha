@@ -1,9 +1,9 @@
 //! Module for handling Hugging Face Hub interactions
 
 // Hub Struct for handling Hugging Face Hub interactions
-// Config
+// Model Config
 mod config;
-pub use config::Config;
+pub use config::ModelConfig;
 // Model File
 mod model_file;
 pub use model_file::ModelFile;
