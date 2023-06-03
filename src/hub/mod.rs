@@ -4,9 +4,6 @@
 // Config
 mod config;
 pub use config::Config;
-// LFS info
-mod lfs_info;
-pub use lfs_info::LfsInfo;
 // Model File
 mod model_file;
 pub use model_file::ModelFile;

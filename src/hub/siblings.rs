@@ -38,7 +38,7 @@ mod tests {
 
     #[test]
     fn test_siblings_new() {
-        let siblings = vec![ModelFile::new("model.json".to_string(), Some(1), Some("123".to_string()), None)];
+        let siblings = vec![ModelFile::new("model.json".to_string(), Some(1), Some("123".to_string()))];
         let siblings = Siblings::new(siblings);
         assert_eq!(siblings.siblings.len(), 1);
     }
@@ -46,9 +46,9 @@ mod tests {
     #[test]
     fn test_siblings_get_sibling_names() {
         let siblings = vec![
-            ModelFile::new("model.json".to_string(), Some(1), Some("123".to_string()), None),
-            ModelFile::new("model2.json".to_string(), Some(1), Some("123".to_string()), None),
-            ModelFile::new("model3.json".to_string(), Some(1), Some("123".to_string()), None),
+            ModelFile::new("model.json".to_string(), Some(1), Some("123".to_string())),
+            ModelFile::new("model2.json".to_string(), Some(1), Some("123".to_string())),
+            ModelFile::new("model3.json".to_string(), Some(1), Some("123".to_string())),
         ];
         let siblings = Siblings::new(siblings);
         let sibling_names = siblings.get_sibling_names();
@@ -60,10 +60,10 @@ mod tests {
 
     #[test]
     fn test_siblings_partial_eq() {
-        let siblings = vec![ModelFile::new("model.json".to_string(), Some(1), Some("123".to_string()), None)];
-        let siblings = Siblings::new(siblings);
-        let siblings2 = vec![ModelFile::new("model.json".to_string(), Some(1), Some("123".to_string()), None)];
-        let siblings2 = Siblings::new(siblings2);
+        let s1 = vec![ModelFile::new("model.json".to_string(), Some(1), Some("123".to_string()))];
+        let siblings = Siblings::new(s1);
+        let s2 = vec![ModelFile::new("model.json".to_string(), Some(1), Some("123".to_string()))];
+        let siblings2 = Siblings::new(s2);
         assert_eq!(siblings, siblings2);
     }
 }

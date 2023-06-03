@@ -133,29 +133,19 @@ mod tests {
     use super::*;
     use pretty_assertions::assert_eq;
     use serde_json::{from_value, json};
-    use crate::hub::{LfsInfo, ModelFile, Siblings};
+    use crate::hub::{ModelFile, Siblings};
 
     fn create_model_files() -> Vec<ModelFile> {
         vec![
             ModelFile {
                 rfilename: String::from("file1"),
                 size: Some(100),
-                blob_id: Some(String::from("blob1")),
-                lfs: Some(LfsInfo {
-                    size: 100,
-                    sha256: String::from("abc123"),
-                    pointer_size: Some(50),
-                }),
+                oid: Some(String::from("oid1")),
             },
             ModelFile {
                 rfilename: String::from("file2"),
                 size: Some(200),
-                blob_id: Some(String::from("blob2")),
-                lfs: Some(LfsInfo {
-                    size: 200,
-                    sha256: String::from("def456"),
-                    pointer_size: Some(100),
-                }),
+                oid: Some(String::from("oid2")),
             },
         ]
     }

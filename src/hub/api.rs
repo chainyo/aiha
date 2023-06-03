@@ -9,12 +9,11 @@ use tokio::time::Duration;
 
 use crate::hub::{
     ModelInfo,
-    ModelFile,
+    Siblings,
     CUSTOM_ENCODE_SET,
     HUB_ENDPOINT,
     build_headers,
 };
-
 
 /// Make a request to the Hugging Face Hub API to retrieve the model info
 pub async fn retrieve_model_info(
@@ -63,9 +62,9 @@ pub async fn retrieve_model_info(
 pub async fn list_files_info(
     repo_id: &str,
     revision: Option<&str>,
-    files: Vec<&String>,
+    siblings: &mut Siblings,
     token: Option<&str>,
-) -> Result<Vec<ModelFile>, Box<dyn Error>> {
+) -> Result<(), Box<dyn Error>> {
     let path = if let Some(rev) = revision.as_ref() {
         let encoded_revision = utf8_percent_encode(rev, CUSTOM_ENCODE_SET).to_string();
         format!("{}/api/models/{}/paths-info/{}", HUB_ENDPOINT, repo_id, encoded_revision)
@@ -74,7 +73,7 @@ pub async fn list_files_info(
     };
     let headers = build_headers(token)?;
     let data = json!({
-        "paths": files,
+        "paths": siblings.get_sibling_names(),
         "expand": true
     });
 
@@ -87,14 +86,22 @@ pub async fn list_files_info(
         .json::<serde_json::Value>()
         .await?;
 
-    println!("{:?}", response);
-
-    let files: Vec<ModelFile> = if let Some(files) = response.as_array() {
-        files.iter().map(|file| ModelFile::from(file.clone())).collect()
-    } else {
-        vec![]
-    };
-    Ok(files)
+    if let Some(response_files) = response.as_array() {
+        for item in response_files.iter() {
+            println!("response_file: {:?}", item);
+            if let Some(
+                existing_model_file
+            ) = siblings.siblings
+                    .iter_mut()
+                    .find(|file| file.get_rfilename() == item["path"].as_str().unwrap()) {
+                        existing_model_file.size = item["size"].as_u64().map(|u| u as i32);
+                        existing_model_file.oid = item["oid"].as_str().map(|s| s.to_string());
+                    } else {
+                        continue;
+                    }
+        }
+    }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -104,7 +111,7 @@ mod tests {
     use pretty_assertions::assert_eq;
     use serde_json::from_value;
 
-    use crate::hub::Siblings;
+    use crate::hub::{ModelFile, Siblings};
 
     #[tokio::test]
     async fn test_retrieve_model_info() {
@@ -140,18 +147,18 @@ mod tests {
         assert_eq!(
             model_info.siblings.as_ref().unwrap(),
             &Siblings::new(vec![
-                ModelFile::new(".gitattributes".to_string(), None, None, None),
-                ModelFile::new("README.md".to_string(), None, None, None),
-                ModelFile::new("added_tokens.json".to_string(), None, None, None),
-                ModelFile::new("config.json".to_string(), None, None, None),
-                ModelFile::new("flax_model.msgpack".to_string(), None, None, None),
-                ModelFile::new("merges.txt".to_string(), None, None, None),
-                ModelFile::new("pytorch_model.bin".to_string(), None, None, None),
-                ModelFile::new("special_tokens_map.json".to_string(), None, None, None),
-                ModelFile::new("tf_model.h5".to_string(), None, None, None),
-                ModelFile::new("tokenizer.json".to_string(), None, None, None),
-                ModelFile::new("tokenizer_config.json".to_string(), None, None, None),
-                ModelFile::new("vocab.json".to_string(), None, None, None),
+                ModelFile::new(".gitattributes".to_string(), None, None),
+                ModelFile::new("README.md".to_string(), None, None),
+                ModelFile::new("added_tokens.json".to_string(), None, None),
+                ModelFile::new("config.json".to_string(), None, None),
+                ModelFile::new("flax_model.msgpack".to_string(), None, None),
+                ModelFile::new("merges.txt".to_string(), None, None),
+                ModelFile::new("pytorch_model.bin".to_string(), None, None),
+                ModelFile::new("special_tokens_map.json".to_string(), None, None),
+                ModelFile::new("tf_model.h5".to_string(), None, None),
+                ModelFile::new("tokenizer.json".to_string(), None, None),
+                ModelFile::new("tokenizer_config.json".to_string(), None, None),
+                ModelFile::new("vocab.json".to_string(), None, None),
             ])
         );
         assert_eq!(model_info.config.as_ref().unwrap().architectures, vec!["GPTJForCausalLM".to_string()]);
@@ -177,14 +184,19 @@ mod tests {
         let files_metadata = Some(false);
         let token = Some("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");
 
-        let result = retrieve_model_info(repo_id, revision, timeout, files_metadata, token).await;
+        let result = retrieve_model_info(
+            repo_id, revision, timeout, files_metadata, token
+        ).await;
         assert!(result.is_ok());
-        let siblings = result.as_ref().unwrap().siblings.as_ref().unwrap();
-        let files = siblings.get_sibling_names();
-        println!("{:?}", files);
+        let mut model_info = result.unwrap();
 
-        let result = list_files_info(repo_id, revision, files, token).await;
-        println!("{:?}", result);
-        assert!(result.is_ok());
+        let result_list = list_files_info(
+            model_info.model_id.as_ref().unwrap(),
+            revision,
+            model_info.siblings.as_mut().unwrap(),
+            token
+        ).await;
+        assert!(result_list.is_ok());
+        println!("{:#?}", model_info.siblings);
     }
 }

@@ -38,7 +38,6 @@ pub use models::{
 };
 pub use hub::{
     Config,
-    LfsInfo,
     ModelFile,
     ModelInfo,
     Siblings,
