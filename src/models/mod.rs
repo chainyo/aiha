@@ -2,7 +2,7 @@
 
 // Base utilities for models
 mod base;
-pub use base::{ ModelConfig, ModelLibraries };
+pub use base::{ ModelConfig, ModelError, ModelLibraries };
 // Bert model
 pub mod bert;
 pub use bert::{ BertModelConfig, BertParams };

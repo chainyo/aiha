@@ -1,5 +1,6 @@
 //! Base traits, structs and enums for models.
 use std::error::Error;
+use std::fmt::{ Display, Formatter, Result as FmtResult };
 
 use serde_derive::Deserialize;
 use serde_json::{ Error as SerdeJsonError, Value };
@@ -93,6 +94,30 @@ pub enum ModelLibraries {
     Transformers,
 }
 
+/// Model error
+#[derive(Debug)]
+pub enum ModelError {
+    Json(SerdeJsonError),
+    MissingField(String),
+}
+
+impl Display for ModelError {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        match self {
+            ModelError::Json(e) => write!(f, "JSON error: {}", e),
+            ModelError::MissingField(field) => write!(f, "Missing field: {}", field),
+        }
+    }
+}
+
+impl Error for ModelError {}
+
+impl From<SerdeJsonError> for ModelError {
+    fn from(error: SerdeJsonError) -> Self {
+        ModelError::Json(error)
+    }
+}
+
 /// Generic trait for Hugging Face models
 pub trait ModelConfig {
     /// Returns the model hidden size
@@ -110,7 +135,7 @@ pub trait ModelConfig {
     /// Returns the model libraries
     fn available_libraries(&self) -> &[ModelLibraries] { &[] }
     /// Create a new model config from a JSON value.
-    fn from_json(value: Value) -> Result<Self, Box<dyn Error>> where Self: Sized;
+    fn from_json(value: Value) -> Result<Self, ModelError> where Self: Sized;
 }
 
 
@@ -151,7 +176,7 @@ mod tests {
             &[ModelLibraries::PyTorch]
         }
 
-        fn from_json(value: Value) -> Result<Self, Box<dyn Error>> where Self: Sized {
+        fn from_json(value: Value) -> Result<Self, ModelError> where Self: Sized {
             Ok(MockModelConfig)
         }
     }
