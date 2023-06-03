@@ -54,8 +54,8 @@ impl fmt::Display for ModelFile {
         if let Some(size) = &self.size {
             write!(f, ", Size: {:?}", size)?;
         }
-        if let Some(blob_id) = &self.oid {
-            write!(f, ", Blob ID: {:?}", blob_id)?;
+        if let Some(oid) = &self.oid {
+            write!(f, ", OID: {:?}", oid)?;
         }
         Ok(())
     }
@@ -110,8 +110,8 @@ mod tests {
         let modelfile = ModelFile::new(rfilename, size, oid);
         assert_eq!(
             format!(
-                "Model File: {:?}, Size: {:?}, Blob ID: {:?}",
-                "rfilename", 1, "blob_id"
+                "Model File: {:?}, Size: {:?}, OID: {:?}",
+                "rfilename", 1, "oid"
             ),
             format!("{}", modelfile)
         );
@@ -123,7 +123,7 @@ mod tests {
         let size = Some(1);
         let oid = Some("oid".to_string());
         let response_json = json!({
-            "name": rfilename,
+            "rfilename": rfilename,
             "size": size.clone(),
             "oid": oid,
         });
