@@ -88,13 +88,12 @@ pub async fn list_files_info(
 
     if let Some(response_files) = response.as_array() {
         for item in response_files.iter() {
-            println!("response_file: {:?}", item);
             if let Some(
                 existing_model_file
             ) = siblings.siblings
                     .iter_mut()
                     .find(|file| file.get_rfilename() == item["path"].as_str().unwrap()) {
-                        existing_model_file.size = item["size"].as_u64().map(|u| u as i32);
+                        existing_model_file.size = item["size"].as_i64();
                         existing_model_file.oid = item["oid"].as_str().map(|s| s.to_string());
                     } else {
                         continue;
@@ -197,6 +196,11 @@ mod tests {
             token
         ).await;
         assert!(result_list.is_ok());
-        println!("{:#?}", model_info.siblings);
+
+        // Check that for each file, the size and oid are set
+        for file in model_info.siblings.as_ref().unwrap().siblings.iter() {
+            assert!(file.size.is_some());
+            assert!(file.oid.is_some());
+        }
     }
 }
