@@ -62,6 +62,7 @@ pub fn build_headers(token: Option<&str>) -> Result<HeaderMap, Box<dyn Error>> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pretty_assertions::assert_eq;
 
     #[test]
     fn test_custom_encode_set() {

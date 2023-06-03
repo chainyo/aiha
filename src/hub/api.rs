@@ -101,6 +101,7 @@ pub async fn list_files_info(
 mod tests {
     use super::*;
 
+    use pretty_assertions::assert_eq;
     use serde_json::from_value;
 
     use crate::hub::Siblings;

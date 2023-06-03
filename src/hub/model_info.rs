@@ -131,6 +131,7 @@ impl From<serde_json::Value> for ModelInfo {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use pretty_assertions::assert_eq;
     use serde_json::{from_value, json};
     use crate::hub::{LfsInfo, ModelFile, Siblings};
 
