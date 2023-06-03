@@ -1,35 +1,10 @@
 //! Module for the Bert model
 use std::error::Error;
-use std::fmt;
 
 use serde::Deserialize;
-use serde_json::{ Error as SerdeJsonError, Value };
+use serde_json::Value;
 
-use crate::models::{ ModelConfig, ModelLibraries };
-
-/// Bert parameters errors
-#[derive(Debug)]
-pub enum BertError {
-    Json(SerdeJsonError),
-    MissingField(String),
-}
-
-impl fmt::Display for BertError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            BertError::Json(e) => write!(f, "JSON error: {}", e),
-            BertError::MissingField(field) => write!(f, "Missing field: {}", field),
-        }
-    }
-}
-
-impl std::error::Error for BertError {}
-
-impl From<SerdeJsonError> for BertError {
-    fn from(error: SerdeJsonError) -> Self {
-        BertError::Json(error)
-    }
-}
+use crate::models::{ ModelConfig, ModelError, ModelLibraries };
 
 /// A struct representing the Bert architecture parameters
 #[derive(Clone, Debug, Deserialize)]
@@ -65,26 +40,26 @@ impl BertParams {
         }
     }
     /// Build from a JSON value
-    pub fn from_json(value: Value) -> Result<BertParams, BertError> {
+    pub fn from_json(value: Value) -> Result<BertParams, ModelError> {
         let hidden_size = value["hidden_size"]
             .as_i64()
-            .ok_or(BertError::MissingField("hidden_size".to_string()))? as i32;
+            .ok_or(ModelError::MissingField("hidden_size".to_string()))? as i32;
 
         let intermediate_size = value["intermediate_size"]
             .as_i64()
-            .ok_or(BertError::MissingField("intermediate_size".to_string()))? as i32;
+            .ok_or(ModelError::MissingField("intermediate_size".to_string()))? as i32;
 
         let max_position_embeddings = value["max_position_embeddings"]
             .as_i64()
-            .ok_or(BertError::MissingField("max_position_embeddings".to_string()))? as i32;
+            .ok_or(ModelError::MissingField("max_position_embeddings".to_string()))? as i32;
 
         let num_attention_heads = value["num_attention_heads"]
             .as_i64()
-            .ok_or(BertError::MissingField("num_attention_heads".to_string()))? as i32;
+            .ok_or(ModelError::MissingField("num_attention_heads".to_string()))? as i32;
 
         let num_hidden_layers = value["num_hidden_layers"]
             .as_i64()
-            .ok_or(BertError::MissingField("num_hidden_layers".to_string()))? as i32;
+            .ok_or(ModelError::MissingField("num_hidden_layers".to_string()))? as i32;
 
         Ok(BertParams {
             hidden_size,
@@ -153,18 +128,20 @@ impl ModelConfig for BertModelConfig {
         &self.available_libraries
     }
 
-    fn from_json(value: Value) -> Result<Self, Box<dyn Error>> {
+    fn from_json(value: Value) -> Result<Self, ModelError> {
         let params = BertParams::from_json(value.clone())?;
         
         let model_type = match value["model_type"].as_str() {
             Some(mt) => mt.to_string(),
-            None => return Err(Box::new(BertError::MissingField("model_type".to_string()))),
+            None => return Err(ModelError::MissingField("model_type".to_string())),
         };
-    
-        let available_libraries = match value["available_libraries"].as_array() {
-            Some(al) => al.iter().map(|v| ModelLibraries::from_str(v.as_str().unwrap()).unwrap()).collect(),
-            None => return Err(Box::new(BertError::MissingField("available_libraries".to_string()))),
-        };
+
+        // TODO: Implement this
+        let available_libraries = vec![ModelLibraries::PyTorch];
+        // let available_libraries = match value["available_libraries"].as_array() {
+        //     Some(al) => al.iter().map(|v| ModelLibraries::from_str(v.as_str().unwrap()).unwrap()).collect(),
+        //     None => return Err(ModelError::MissingField("available_libraries".to_string())),
+        // };
     
         Ok(BertModelConfig {
             params,
