@@ -105,7 +105,7 @@ mod tests {
         let size = Some(1);
         let blob_id = Some("blob_id".to_string());
         let lfs = Some(LfsInfo::new(1, "sha256".to_string(), Some(2)));
-        let modelfile = ModelFile::new(rfilename.clone(), size.clone(), blob_id.clone(), lfs.clone());
+        let modelfile = ModelFile::new(rfilename.clone(), size, blob_id.clone(), lfs.clone());
         assert_eq!(modelfile.rfilename, rfilename);
         assert_eq!(modelfile.size, size);
         assert_eq!(modelfile.blob_id, blob_id);
@@ -121,8 +121,8 @@ mod tests {
         let size = Some(1);
         let blob_id = Some("blob_id".to_string());
         let lfs = Some(LfsInfo::new(1, "sha256".to_string(), Some(2)));
-        let modelfile = ModelFile::new(rfilename.clone(), size.clone(), blob_id.clone(), lfs.clone());
-        let modelfile2 = ModelFile::new(rfilename.clone(), size.clone(), blob_id.clone(), lfs.clone());
+        let modelfile = ModelFile::new(rfilename.clone(), size, blob_id.clone(), lfs.clone());
+        let modelfile2 = ModelFile::new(rfilename, size, blob_id, lfs);
         assert_eq!(modelfile, modelfile2);
     }
 
@@ -132,7 +132,7 @@ mod tests {
         let size = Some(1);
         let blob_id = Some("blob_id".to_string());
         let lfs = Some(LfsInfo::new(1, "sha256".to_string(), Some(2)));
-        let modelfile = ModelFile::new(rfilename.clone(), size.clone(), blob_id.clone(), lfs.clone());
+        let modelfile = ModelFile::new(rfilename, size, blob_id, lfs.clone());
         assert_eq!(
             format!(
                 "Model File: {:?}, Size: {:?}, Blob ID: {:?}, LFS: {:?}",
@@ -149,9 +149,9 @@ mod tests {
         let blob_id = Some("blob_id".to_string());
         let lfs = Some(LfsInfo::new(1, "sha256".to_string(), Some(2)));
         let response_json = json!({
-            "name": rfilename.clone(),
+            "name": rfilename,
             "size": size.clone(),
-            "blob_id": blob_id.clone(),
+            "blob_id": blob_id,
             "lfs": {
                 "size": 1,
                 "oid": "sha256",

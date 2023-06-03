@@ -44,27 +44,30 @@ mod tests {
     fn test_config_new() {
         let architectures = vec!["armv7".to_string(), "armv8".to_string()];
         let model_type = "classification".to_string();
-        let config = Config::new(architectures.clone(), model_type.clone());
+        let config = Config::new(
+            vec!["armv7".to_string(), "armv8".to_string()],
+            "classification".to_string()
+        );
         assert_eq!(config.architectures, architectures);
         assert_eq!(config.model_type, model_type);
     }
 
     #[test]
     fn test_config_get_architectures() {
-        let architectures = vec!["armv7".to_string(), "armv8".to_string()];
-        let model_type = "classification".to_string();
-        let config = Config::new(architectures.clone(), model_type.clone());
+        let config = Config::new(
+            vec!["armv7".to_string(), "armv8".to_string()],
+            "classification".to_string()
+        );
         let architectures = config.get_architectures();
-        assert_eq!(architectures.len(), 2);
-        assert_eq!(architectures[0], "armv7");
-        assert_eq!(architectures[1], "armv8");
+        assert_eq!(architectures, vec!["armv7", "armv8"]);
     }
 
     #[test]
     fn test_config_get_model_type() {
-        let architectures = vec!["armv7".to_string(), "armv8".to_string()];
-        let model_type = "classification".to_string();
-        let config = Config::new(architectures.clone(), model_type.clone());
+        let config = Config::new(
+            vec!["armv7".to_string(), "armv8".to_string()],
+            "classification".to_string()
+        );
         let model_type = config.get_model_type();
         assert_eq!(model_type, "classification");
     }
@@ -74,7 +77,7 @@ mod tests {
         let architectures = vec!["armv7".to_string(), "armv8".to_string()];
         let model_type = "classification".to_string();
         let config = Config::new(architectures.clone(), model_type.clone());
-        let config2 = Config::new(architectures.clone(), model_type.clone());
+        let config2 = Config::new(architectures, model_type);
         assert_eq!(config, config2);
     }
 }

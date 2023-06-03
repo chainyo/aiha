@@ -42,7 +42,7 @@ mod tests {
         let size = 1;
         let sha256 = "sha256".to_string();
         let pointer_size = Some(2);
-        let lfsinfo = LfsInfo::new(size, sha256.clone(), pointer_size.clone());
+        let lfsinfo = LfsInfo::new(size, sha256.clone(), pointer_size);
         assert_eq!(lfsinfo.size, size);
         assert_eq!(lfsinfo.sha256, sha256);
         assert_eq!(lfsinfo.pointer_size, pointer_size);
@@ -53,8 +53,8 @@ mod tests {
         let size = 1;
         let sha256 = "sha256".to_string();
         let pointer_size = Some(2);
-        let lfsinfo = LfsInfo::new(size, sha256.clone(), pointer_size.clone());
-        let lfsinfo2 = LfsInfo::new(size, sha256.clone(), pointer_size.clone());
+        let lfsinfo = LfsInfo::new(size, sha256.clone(), pointer_size);
+        let lfsinfo2 = LfsInfo::new(size, sha256, pointer_size);
         assert_eq!(lfsinfo, lfsinfo2);
     }
 }
