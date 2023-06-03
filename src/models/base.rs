@@ -151,7 +151,7 @@ mod tests {
             &[ModelLibraries::PyTorch]
         }
 
-        fn from_json(value: Value) -> Result<Self, Error> where Self: Sized {
+        fn from_json(value: Value) -> Result<Self, Box<dyn Error>> where Self: Sized {
             Ok(MockModelConfig)
         }
     }
