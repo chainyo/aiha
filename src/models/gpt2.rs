@@ -68,24 +68,24 @@ impl GPT2ModelConfig {
 
 /// Implementation of the `ModelConfig` trait for `GPT2ModelConfig`
 impl ModelConfig for GPT2ModelConfig {
-    fn hidden_size(&self) -> &i32 {
-        &self.params.n_embd
+    fn hidden_size(&self) -> i32 {
+        self.params.n_embd
     }
 
-    fn intermediate_size(&self) -> &i32 {
-        &self.params.n_inner
+    fn intermediate_size(&self) -> i32 {
+        self.params.n_inner
     }
 
-    fn max_position_embeddings(&self) -> &i32 {
-        &self.params.n_positions
+    fn max_position_embeddings(&self) -> i32 {
+        self.params.n_positions
     }
 
-    fn num_attention_heads(&self) -> &i32 {
-        &self.params.n_head
+    fn num_attention_heads(&self) -> i32 {
+        self.params.n_head
     }
 
-    fn num_hidden_layers(&self) -> &i32 {
-        &self.params.n_layer
+    fn num_hidden_layers(&self) -> i32 {
+        self.params.n_layer
     }
 
     fn model_type(&self) -> &str {
@@ -128,11 +128,11 @@ mod tests {
     fn test_gpt2_model_trait_implementation() {
         let params = GPT2Params::new(768, None, 1024, 12, 12);
         let model_config = GPT2ModelConfig::new(params, "gpt2".to_string(), vec![ModelLibraries::Transformers]);
-        assert_eq!(*model_config.hidden_size(), 768);
-        assert_eq!(*model_config.intermediate_size(), 3072);
-        assert_eq!(*model_config.max_position_embeddings(), 1024);
-        assert_eq!(*model_config.num_attention_heads(), 12);
-        assert_eq!(*model_config.num_hidden_layers(), 12);
+        assert_eq!(model_config.hidden_size(), 768);
+        assert_eq!(model_config.intermediate_size(), 3072);
+        assert_eq!(model_config.max_position_embeddings(), 1024);
+        assert_eq!(model_config.num_attention_heads(), 12);
+        assert_eq!(model_config.num_hidden_layers(), 12);
         assert_eq!(model_config.model_type(), "gpt2");
         assert_eq!(model_config.available_libraries(), vec![ModelLibraries::Transformers]);
     }

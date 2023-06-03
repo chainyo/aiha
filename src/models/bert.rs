@@ -1,7 +1,35 @@
 //! Module for the Bert model
+use std::error::Error;
+use std::fmt;
+
 use serde::Deserialize;
+use serde_json::{ Error as SerdeJsonError, Value };
 
 use crate::models::{ ModelConfig, ModelLibraries };
+
+/// Bert parameters errors
+#[derive(Debug)]
+pub enum BertError {
+    Json(SerdeJsonError),
+    MissingField(String),
+}
+
+impl fmt::Display for BertError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            BertError::Json(e) => write!(f, "JSON error: {}", e),
+            BertError::MissingField(field) => write!(f, "Missing field: {}", field),
+        }
+    }
+}
+
+impl std::error::Error for BertError {}
+
+impl From<SerdeJsonError> for BertError {
+    fn from(error: SerdeJsonError) -> Self {
+        BertError::Json(error)
+    }
+}
 
 /// A struct representing the Bert architecture parameters
 #[derive(Clone, Debug, Deserialize)]
@@ -36,6 +64,36 @@ impl BertParams {
             num_hidden_layers,
         }
     }
+    /// Build from a JSON value
+    pub fn from_json(value: Value) -> Result<BertParams, BertError> {
+        let hidden_size = value["hidden_size"]
+            .as_i64()
+            .ok_or(BertError::MissingField("hidden_size".to_string()))? as i32;
+
+        let intermediate_size = value["intermediate_size"]
+            .as_i64()
+            .ok_or(BertError::MissingField("intermediate_size".to_string()))? as i32;
+
+        let max_position_embeddings = value["max_position_embeddings"]
+            .as_i64()
+            .ok_or(BertError::MissingField("max_position_embeddings".to_string()))? as i32;
+
+        let num_attention_heads = value["num_attention_heads"]
+            .as_i64()
+            .ok_or(BertError::MissingField("num_attention_heads".to_string()))? as i32;
+
+        let num_hidden_layers = value["num_hidden_layers"]
+            .as_i64()
+            .ok_or(BertError::MissingField("num_hidden_layers".to_string()))? as i32;
+
+        Ok(BertParams {
+            hidden_size,
+            intermediate_size,
+            max_position_embeddings,
+            num_attention_heads,
+            num_hidden_layers,
+        })
+    }
 }
 
 /// A struct representing a Bert model configuration
@@ -67,24 +125,24 @@ impl BertModelConfig {
 
 /// Implementation of the `ModelConfig` trait for `BertModelConfig`
 impl ModelConfig for BertModelConfig {
-    fn hidden_size(&self) -> &i32 {
-        &self.params.hidden_size
+    fn hidden_size(&self) -> i32 {
+        self.params.hidden_size
     }
 
-    fn intermediate_size(&self) -> &i32 {
-        &self.params.intermediate_size
+    fn intermediate_size(&self) -> i32 {
+        self.params.intermediate_size
     }
 
-    fn max_position_embeddings(&self) -> &i32 {
-        &self.params.max_position_embeddings
+    fn max_position_embeddings(&self) -> i32 {
+        self.params.max_position_embeddings
     }
 
-    fn num_attention_heads(&self) -> &i32 {
-        &self.params.num_attention_heads
+    fn num_attention_heads(&self) -> i32 {
+        self.params.num_attention_heads
     }
 
-    fn num_hidden_layers(&self) -> &i32 {
-        &self.params.num_hidden_layers
+    fn num_hidden_layers(&self) -> i32 {
+        self.params.num_hidden_layers
     }
 
     fn model_type(&self) -> &str {
@@ -93,6 +151,26 @@ impl ModelConfig for BertModelConfig {
 
     fn available_libraries(&self) -> &[ModelLibraries] {
         &self.available_libraries
+    }
+
+    fn from_json(value: Value) -> Result<Self, Box<dyn Error>> {
+        let params = BertParams::from_json(value.clone())?;
+        
+        let model_type = match value["model_type"].as_str() {
+            Some(mt) => mt.to_string(),
+            None => return Err(Box::new(BertError::MissingField("model_type".to_string()))),
+        };
+    
+        let available_libraries = match value["available_libraries"].as_array() {
+            Some(al) => al.iter().map(|v| ModelLibraries::from_str(v.as_str().unwrap()).unwrap()).collect(),
+            None => return Err(Box::new(BertError::MissingField("available_libraries".to_string()))),
+        };
+    
+        Ok(BertModelConfig {
+            params,
+            model_type,
+            available_libraries,
+        })
     }
 }
 
@@ -154,11 +232,11 @@ mod tests {
             "bert".to_string(),
             vec![ModelLibraries::PyTorch],
         );
-        assert_eq!(*bert_model_config.hidden_size(), 768);
-        assert_eq!(*bert_model_config.intermediate_size(), 3072);
-        assert_eq!(*bert_model_config.max_position_embeddings(), 512);
-        assert_eq!(*bert_model_config.num_attention_heads(), 12);
-        assert_eq!(*bert_model_config.num_hidden_layers(), 12);
+        assert_eq!(bert_model_config.hidden_size(), 768);
+        assert_eq!(bert_model_config.intermediate_size(), 3072);
+        assert_eq!(bert_model_config.max_position_embeddings(), 512);
+        assert_eq!(bert_model_config.num_attention_heads(), 12);
+        assert_eq!(bert_model_config.num_hidden_layers(), 12);
         assert_eq!(bert_model_config.model_type(), "bert");
         assert_eq!(bert_model_config.available_libraries(), vec![ModelLibraries::PyTorch]);
     }

@@ -67,24 +67,24 @@ impl LlamaModelConfig {
 
 /// Implementation of the `ModelConfig` trait for `LlamaModelConfig`
 impl ModelConfig for LlamaModelConfig {
-    fn hidden_size(&self) -> &i32 {
-        &self.params.hidden_size
+    fn hidden_size(&self) -> i32 {
+        self.params.hidden_size
     }
 
-    fn intermediate_size(&self) -> &i32 {
-        &self.params.intermediate_size
+    fn intermediate_size(&self) -> i32 {
+        self.params.intermediate_size
     }
 
-    fn max_position_embeddings(&self) -> &i32 {
-        &self.params.max_sequence_length
+    fn max_position_embeddings(&self) -> i32 {
+        self.params.max_sequence_length
     }
 
-    fn num_attention_heads(&self) -> &i32 {
-        &self.params.num_attention_heads
+    fn num_attention_heads(&self) -> i32 {
+        self.params.num_attention_heads
     }
 
-    fn num_hidden_layers(&self) -> &i32 {
-        &self.params.num_hidden_layers
+    fn num_hidden_layers(&self) -> i32 {
+        self.params.num_hidden_layers
     }
 
     fn model_type(&self) -> &str {
@@ -160,11 +160,11 @@ mod tests {
             available_libraries: vec![ModelLibraries::PyTorch],
         };
 
-        assert_eq!(*llama_model_config.hidden_size(), 768);
-        assert_eq!(*llama_model_config.intermediate_size(), 3072);
-        assert_eq!(*llama_model_config.max_position_embeddings(), 1024);
-        assert_eq!(*llama_model_config.num_attention_heads(), 12);
-        assert_eq!(*llama_model_config.num_hidden_layers(), 12);
+        assert_eq!(llama_model_config.hidden_size(), 768);
+        assert_eq!(llama_model_config.intermediate_size(), 3072);
+        assert_eq!(llama_model_config.max_position_embeddings(), 1024);
+        assert_eq!(llama_model_config.num_attention_heads(), 12);
+        assert_eq!(llama_model_config.num_hidden_layers(), 12);
         assert_eq!(llama_model_config.model_type(), "llama");
         assert_eq!(llama_model_config.available_libraries(), vec![ModelLibraries::PyTorch]);
     }

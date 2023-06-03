@@ -68,24 +68,24 @@ impl GPTJModelConfig {
 
 /// Implementation of the `ModelConfig` trait for `GPTJModelConfig`
 impl ModelConfig for GPTJModelConfig {
-    fn hidden_size(&self) -> &i32 {
-        &self.params.n_embd
+    fn hidden_size(&self) -> i32 {
+        self.params.n_embd
     }
 
-    fn intermediate_size(&self) -> &i32 {
-        &self.params.n_inner
+    fn intermediate_size(&self) -> i32 {
+        self.params.n_inner
     }
 
-    fn max_position_embeddings(&self) -> &i32 {
-        &self.params.n_positions
+    fn max_position_embeddings(&self) -> i32 {
+        self.params.n_positions
     }
 
-    fn num_attention_heads(&self) -> &i32 {
-        &self.params.n_head
+    fn num_attention_heads(&self) -> i32 {
+        self.params.n_head
     }
 
-    fn num_hidden_layers(&self) -> &i32 {
-        &self.params.n_layer
+    fn num_hidden_layers(&self) -> i32 {
+        self.params.n_layer
     }
 
     fn model_type(&self) -> &str {
@@ -140,11 +140,11 @@ mod tests {
     fn test_gpt_j_model_trait_implementation() {
         let params = GPTJParams::new(1024, Some(2048), 1024, 16, 28);
         let model_config = GPTJModelConfig::new(params, "gpt-j".to_string(), vec![ModelLibraries::PyTorch]);
-        assert_eq!(*model_config.hidden_size(), 1024);
-        assert_eq!(*model_config.intermediate_size(), 2048);
-        assert_eq!(*model_config.max_position_embeddings(), 1024);
-        assert_eq!(*model_config.num_attention_heads(), 16);
-        assert_eq!(*model_config.num_hidden_layers(), 28);
+        assert_eq!(model_config.hidden_size(), 1024);
+        assert_eq!(model_config.intermediate_size(), 2048);
+        assert_eq!(model_config.max_position_embeddings(), 1024);
+        assert_eq!(model_config.num_attention_heads(), 16);
+        assert_eq!(model_config.num_hidden_layers(), 28);
         assert_eq!(model_config.model_type, "gpt-j");
         assert_eq!(model_config.available_libraries, vec![ModelLibraries::PyTorch]);
     }

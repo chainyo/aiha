@@ -67,24 +67,24 @@ impl OPTModelConfig {
 
 /// Implementation of the `ModelConfig` trait for `OPTModelConfig`
 impl ModelConfig for OPTModelConfig {
-    fn hidden_size(&self) -> &i32 {
-        &self.params.hidden_size
+    fn hidden_size(&self) -> i32 {
+        self.params.hidden_size
     }
 
-    fn intermediate_size(&self) -> &i32 {
-        &self.params.ffn_dim
+    fn intermediate_size(&self) -> i32 {
+        self.params.ffn_dim
     }
 
-    fn max_position_embeddings(&self) -> &i32 {
-        &self.params.max_position_embeddings
+    fn max_position_embeddings(&self) -> i32 {
+        self.params.max_position_embeddings
     }
 
-    fn num_attention_heads(&self) -> &i32 {
-        &self.params.num_attention_heads
+    fn num_attention_heads(&self) -> i32 {
+        self.params.num_attention_heads
     }
 
-    fn num_hidden_layers(&self) -> &i32 {
-        &self.params.num_hidden_layers
+    fn num_hidden_layers(&self) -> i32 {
+        self.params.num_hidden_layers
     }
 
     fn model_type(&self) -> &str {
@@ -158,11 +158,11 @@ mod tests {
             vec![ModelLibraries::TensorFlow, ModelLibraries::PyTorch],
         );
 
-        assert_eq!(opt_model_config.hidden_size(), &768);
-        assert_eq!(opt_model_config.intermediate_size(), &3072);
-        assert_eq!(opt_model_config.max_position_embeddings(), &512);
-        assert_eq!(opt_model_config.num_attention_heads(), &12);
-        assert_eq!(opt_model_config.num_hidden_layers(), &12);
+        assert_eq!(opt_model_config.hidden_size(), 768);
+        assert_eq!(opt_model_config.intermediate_size(), 3072);
+        assert_eq!(opt_model_config.max_position_embeddings(), 512);
+        assert_eq!(opt_model_config.num_attention_heads(), 12);
+        assert_eq!(opt_model_config.num_hidden_layers(), 12);
         assert_eq!(opt_model_config.model_type(), "opt");
         assert_eq!(opt_model_config.available_libraries(), vec![ModelLibraries::TensorFlow, ModelLibraries::PyTorch]);
     }

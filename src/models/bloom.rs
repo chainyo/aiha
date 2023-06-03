@@ -46,25 +46,25 @@ impl BloomModelConfig {
 
 /// Implementation of the `ModelConfig` trait for `BloomModelConfig`
 impl ModelConfig for BloomModelConfig {
-    fn hidden_size(&self) -> &i32 {
-        &self.params.n_embd
+    fn hidden_size(&self) -> i32 {
+        self.params.n_embd
     }
 
-    fn intermediate_size(&self) -> &i32 {
-        &self.params.n_inner
+    fn intermediate_size(&self) -> i32 {
+        self.params.n_inner
     }
 
-    fn max_position_embeddings(&self) -> &i32 {
+    fn max_position_embeddings(&self) -> i32 {
         // self.max_position_embeddings
-        &0
+        0
     }
 
-    fn num_attention_heads(&self) -> &i32 {
-        &self.params.num_attention_heads
+    fn num_attention_heads(&self) -> i32 {
+        self.params.num_attention_heads
     }
 
-    fn num_hidden_layers(&self) -> &i32 {
-        &self.params.n_layer
+    fn num_hidden_layers(&self) -> i32 {
+        self.params.n_layer
     }
 
     fn model_type(&self) -> &str {
@@ -133,11 +133,11 @@ mod tests {
             available_libraries: vec![ModelLibraries::PyTorch],
         };
 
-        assert_eq!(*bloom_model_config.hidden_size(), 768);
-        assert_eq!(*bloom_model_config.intermediate_size(), 3072);
-        assert_eq!(*bloom_model_config.max_position_embeddings(), 0);
-        assert_eq!(*bloom_model_config.num_attention_heads(), 12);
-        assert_eq!(*bloom_model_config.num_hidden_layers(), 12);
+        assert_eq!(bloom_model_config.hidden_size(), 768);
+        assert_eq!(bloom_model_config.intermediate_size(), 3072);
+        assert_eq!(bloom_model_config.max_position_embeddings(), 0);
+        assert_eq!(bloom_model_config.num_attention_heads(), 12);
+        assert_eq!(bloom_model_config.num_hidden_layers(), 12);
         assert_eq!(bloom_model_config.model_type(), "bloom");
         assert_eq!(bloom_model_config.available_libraries(), vec![ModelLibraries::PyTorch]);
     }

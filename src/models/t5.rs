@@ -67,24 +67,24 @@ impl T5ModelConfig {
 
 /// Implementation of the `ModelConfig` trait for `T5ModelConfig`
 impl ModelConfig for T5ModelConfig {
-    fn hidden_size(&self) -> &i32 {
-        &self.params.d_model
+    fn hidden_size(&self) -> i32 {
+        self.params.d_model
     }
 
-    fn intermediate_size(&self) -> &i32 {
-        &self.params.d_ff
+    fn intermediate_size(&self) -> i32 {
+        self.params.d_ff
     }
 
-    fn max_position_embeddings(&self) -> &i32 {
-        &self.params.n_positions
+    fn max_position_embeddings(&self) -> i32 {
+        self.params.n_positions
     }
 
-    fn num_attention_heads(&self) -> &i32 {
-        &self.params.n_heads
+    fn num_attention_heads(&self) -> i32 {
+        self.params.n_heads
     }
 
-    fn num_hidden_layers(&self) -> &i32 {
-        &self.params.n_layers
+    fn num_hidden_layers(&self) -> i32 {
+        self.params.n_layers
     }
 
     fn model_type(&self) -> &str {
@@ -135,11 +135,11 @@ mod tests {
             "t5".to_string(),
             vec![ModelLibraries::TensorFlow],
         );
-        assert_eq!(t5_model_config.hidden_size(), &768);
-        assert_eq!(t5_model_config.intermediate_size(), &3072);
-        assert_eq!(t5_model_config.max_position_embeddings(), &512);
-        assert_eq!(t5_model_config.num_attention_heads(), &12);
-        assert_eq!(t5_model_config.num_hidden_layers(), &12);
+        assert_eq!(t5_model_config.hidden_size(), 768);
+        assert_eq!(t5_model_config.intermediate_size(), 3072);
+        assert_eq!(t5_model_config.max_position_embeddings(), 512);
+        assert_eq!(t5_model_config.num_attention_heads(), 12);
+        assert_eq!(t5_model_config.num_hidden_layers(), 12);
         assert_eq!(t5_model_config.model_type(), "t5");
         assert_eq!(t5_model_config.available_libraries(), vec![ModelLibraries::TensorFlow]);
     }
