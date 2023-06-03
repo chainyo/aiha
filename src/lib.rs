@@ -37,9 +37,12 @@ pub use models::{
     T5Params,
 };
 pub use hub::{
-    retrieve_model_info,
     Config,
-    HubFile,
+    LfsInfo,
+    ModelFile,
     ModelInfo,
     Siblings,
+    build_headers,
+    CUSTOM_ENCODE_SET,
+    HUB_ENDPOINT,
 };
