@@ -6,9 +6,7 @@ use std::ops::Not;
 use serde_json::Value;
 use serde::Deserialize;
 
-use crate::hub::Config;
-use crate::hub::ModelFile;
-use crate::hub::Siblings;
+use crate::hub::{ ModelConfig, ModelFile, Siblings };
 
 /// Struct for storing the model metadata
 #[derive(Debug, Deserialize)]
@@ -22,7 +20,7 @@ pub struct ModelInfo {
     /// The siblings of the repository
     pub siblings: Option<Siblings>,
     /// The config file associated with the repository
-    pub config: Option<Config>,
+    pub config: Option<ModelConfig>,
     /// The security status (e.g. `{"containsInfected": False}`)
     pub security_status: Option<HashMap<String, Value>>,
 }
@@ -35,7 +33,7 @@ impl ModelInfo {
         tags: Option<Vec<String>>,
         pipeline_tag: Option<String>,
         siblings: Option<Siblings>,
-        config: Option<Config>,
+        config: Option<ModelConfig>,
         security_status: Option<HashMap<String, Value>>,
     ) -> Self {
         Self {
