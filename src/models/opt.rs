@@ -1,7 +1,10 @@
 //! Module for the OPT model
-use super::base::{ ModelConfig, ModelLibraries };
+use serde::Deserialize;
+
+use crate::models::{ ModelConfig, ModelLibraries };
 
 /// A struct representing the OPT architecture parameters
+#[derive(Clone, Debug, Deserialize)]
 pub struct OPTParams {
     /// OPT model hidden_size
     hidden_size: i32,
@@ -36,11 +39,10 @@ impl OPTParams {
 }
 
 /// A struct representing a OPT model configuration
+#[derive(Clone, Debug, Deserialize)]
 pub struct OPTModelConfig {
     /// OPT model parameters
     params: OPTParams,
-    /// OPT model Hugging Face repository name
-    repo_name: String,
     /// OPT model type
     model_type: String,
     /// OPT model available libraries
@@ -52,13 +54,11 @@ impl OPTModelConfig {
     /// Build a new `OPTModelConfig` struct based on the provided parameters
     pub fn new(
         params: OPTParams,
-        repo_name: String,
         model_type: String,
         available_libraries: Vec<ModelLibraries>,
     ) -> OPTModelConfig {
         OPTModelConfig {
             params,
-            repo_name,
             model_type,
             available_libraries,
         }
@@ -85,10 +85,6 @@ impl ModelConfig for OPTModelConfig {
 
     fn num_hidden_layers(&self) -> &i32 {
         &self.params.num_hidden_layers
-    }
-
-    fn repo_name(&self) -> &str {
-        &self.repo_name
     }
 
     fn model_type(&self) -> &str {
@@ -133,7 +129,6 @@ mod tests {
 
         let opt_model_config = OPTModelConfig::new(
             opt_params,
-            String::from("facebook/opt-1.3b"),
             String::from("opt"),
             vec![ModelLibraries::TensorFlow, ModelLibraries::PyTorch],
         );
@@ -143,7 +138,6 @@ mod tests {
         assert_eq!(opt_model_config.params.max_position_embeddings, 512);
         assert_eq!(opt_model_config.params.num_attention_heads, 12);
         assert_eq!(opt_model_config.params.num_hidden_layers, 12);
-        assert_eq!(opt_model_config.repo_name, "facebook/opt-1.3b");
         assert_eq!(opt_model_config.model_type, "opt");
         assert_eq!(opt_model_config.available_libraries, vec![ModelLibraries::TensorFlow, ModelLibraries::PyTorch]);
     }
@@ -160,7 +154,6 @@ mod tests {
 
         let opt_model_config = OPTModelConfig::new(
             opt_params,
-            String::from("facebook/opt-1.3b"),
             String::from("opt"),
             vec![ModelLibraries::TensorFlow, ModelLibraries::PyTorch],
         );
@@ -170,7 +163,6 @@ mod tests {
         assert_eq!(opt_model_config.max_position_embeddings(), &512);
         assert_eq!(opt_model_config.num_attention_heads(), &12);
         assert_eq!(opt_model_config.num_hidden_layers(), &12);
-        assert_eq!(opt_model_config.repo_name(), "facebook/opt-1.3b");
         assert_eq!(opt_model_config.model_type(), "opt");
         assert_eq!(opt_model_config.available_libraries(), vec![ModelLibraries::TensorFlow, ModelLibraries::PyTorch]);
     }

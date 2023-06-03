@@ -1,7 +1,10 @@
 //! Module for the Bert model
-use super::base::{ ModelConfig, ModelLibraries };
+use serde::Deserialize;
+
+use crate::models::{ ModelConfig, ModelLibraries };
 
 /// A struct representing the Bert architecture parameters
+#[derive(Clone, Debug, Deserialize)]
 pub struct BertParams {
     /// Bert model hidden_size
     hidden_size: i32,
@@ -36,11 +39,10 @@ impl BertParams {
 }
 
 /// A struct representing a Bert model configuration
+#[derive(Clone, Debug, Deserialize)]
 pub struct BertModelConfig {
     /// Bert model parameters
     params: BertParams,
-    /// Bert model Hugging Face repository name
-    repo_name: String,
     /// Bert model type
     model_type: String,
     /// Bert model available libraries
@@ -52,13 +54,11 @@ impl BertModelConfig {
     /// Build a new `BertModelConfig` struct based on the provided parameters
     pub fn new(
         params: BertParams,
-        repo_name: String,
         model_type: String,
         available_libraries: Vec<ModelLibraries>,
     ) -> BertModelConfig {
         BertModelConfig {
             params,
-            repo_name,
             model_type,
             available_libraries,
         }
@@ -85,10 +85,6 @@ impl ModelConfig for BertModelConfig {
 
     fn num_hidden_layers(&self) -> &i32 {
         &self.params.num_hidden_layers
-    }
-
-    fn repo_name(&self) -> &str {
-        &self.repo_name
     }
 
     fn model_type(&self) -> &str {
@@ -132,7 +128,6 @@ mod tests {
         );
         let bert_model_config = BertModelConfig::new(
             bert_params,
-            "bert-base-uncased".to_string(),
             "bert".to_string(),
             vec![ModelLibraries::PyTorch],
         );
@@ -141,7 +136,6 @@ mod tests {
         assert_eq!(bert_model_config.params.max_position_embeddings, 512);
         assert_eq!(bert_model_config.params.num_attention_heads, 12);
         assert_eq!(bert_model_config.params.num_hidden_layers, 12);
-        assert_eq!(bert_model_config.repo_name, "bert-base-uncased");
         assert_eq!(bert_model_config.model_type, "bert");
         assert_eq!(bert_model_config.available_libraries, vec![ModelLibraries::PyTorch]);
     }
@@ -157,7 +151,6 @@ mod tests {
         );
         let bert_model_config = BertModelConfig::new(
             bert_params,
-            "bert-base-uncased".to_string(),
             "bert".to_string(),
             vec![ModelLibraries::PyTorch],
         );
@@ -166,7 +159,6 @@ mod tests {
         assert_eq!(*bert_model_config.max_position_embeddings(), 512);
         assert_eq!(*bert_model_config.num_attention_heads(), 12);
         assert_eq!(*bert_model_config.num_hidden_layers(), 12);
-        assert_eq!(bert_model_config.repo_name(), "bert-base-uncased");
         assert_eq!(bert_model_config.model_type(), "bert");
         assert_eq!(bert_model_config.available_libraries(), vec![ModelLibraries::PyTorch]);
     }

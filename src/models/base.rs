@@ -1,7 +1,8 @@
 //! Base traits, structs and enums for models.
+use serde_derive::Deserialize;
 
 /// Enumerate the different model libraries available on the Hugging Face Hub
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 pub enum ModelLibraries {
     /// Adapter Transformers library
     AdapterTransformers,
@@ -101,8 +102,6 @@ pub trait ModelConfig {
     fn num_attention_heads(&self) -> &i32;
     /// Returns the model number of hidden layers
     fn num_hidden_layers(&self) -> &i32;
-    /// Returns the model repository name
-    fn repo_name(&self) -> &str;
     /// Returns the model type
     fn model_type(&self) -> &str;
     /// Returns the model libraries
@@ -138,10 +137,6 @@ mod tests {
             &12
         }
 
-        fn repo_name(&self) -> &str {
-            "mock"
-        }
-
         fn model_type(&self) -> &str {
             "mock"
         }
@@ -159,7 +154,6 @@ mod tests {
         assert_eq!(*config.max_position_embeddings(), 512);
         assert_eq!(*config.num_attention_heads(), 16);
         assert_eq!(*config.num_hidden_layers(), 12);
-        assert_eq!(config.repo_name(), "mock");
         assert_eq!(config.model_type(), "mock");
         assert_eq!(config.available_libraries(), vec![ModelLibraries::PyTorch]);
     }

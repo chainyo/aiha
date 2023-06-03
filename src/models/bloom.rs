@@ -1,7 +1,10 @@
 //! Module for the BLOOM model
-use super::base::{ ModelConfig, ModelLibraries };
+use serde::Deserialize;
+
+use crate::models::{ ModelConfig, ModelLibraries };
 
 /// A struct representing the BLOOM architecture parameters
+#[derive(Clone, Debug, Deserialize)]
 pub struct BloomParams {
     /// BLOOM model hidden_size
     n_embd: i32,
@@ -15,11 +18,10 @@ pub struct BloomParams {
 }
 
 /// A struct representing a BLOOM model configuration
+#[derive(Clone, Debug, Deserialize)]
 pub struct BloomModelConfig {
     /// BLOOM model parameters
     params: BloomParams,
-    /// BLOOM model Hugging Face repository name
-    repo_name: String,
     /// BLOOM model type
     model_type: String,
     /// BLOOM model available libraries
@@ -31,13 +33,11 @@ impl BloomModelConfig {
     /// Build a new `BloomModelConfig` struct based on the provided parameters
     pub fn new(
         params: BloomParams,
-        repo_name: String,
         model_type: String,
         available_libraries: Vec<ModelLibraries>,
     ) -> BloomModelConfig {
         BloomModelConfig {
             params,
-            repo_name,
             model_type,
             available_libraries,
         }
@@ -65,10 +65,6 @@ impl ModelConfig for BloomModelConfig {
 
     fn num_hidden_layers(&self) -> &i32 {
         &self.params.n_layer
-    }
-
-    fn repo_name(&self) -> &str {
-        &self.repo_name
     }
 
     fn model_type(&self) -> &str {
@@ -110,7 +106,6 @@ mod tests {
 
         let bloom_model_config = BloomModelConfig {
             params: bloom_params,
-            repo_name: "bigscience/bloomz-3b".to_string(),
             model_type: "bloom".to_string(),
             available_libraries: vec![ModelLibraries::PyTorch],
         };
@@ -119,7 +114,6 @@ mod tests {
         assert_eq!(bloom_model_config.params.n_inner, 3072);
         assert_eq!(bloom_model_config.params.num_attention_heads, 12);
         assert_eq!(bloom_model_config.params.n_layer, 12);
-        assert_eq!(bloom_model_config.repo_name, "bigscience/bloomz-3b");
         assert_eq!(bloom_model_config.model_type, "bloom");
         assert_eq!(bloom_model_config.available_libraries, vec![ModelLibraries::PyTorch]);
     }
@@ -135,7 +129,6 @@ mod tests {
 
         let bloom_model_config = BloomModelConfig {
             params: bloom_params,
-            repo_name: "bigscience/bloomz-3b".to_string(),
             model_type: "bloom".to_string(),
             available_libraries: vec![ModelLibraries::PyTorch],
         };
@@ -145,7 +138,6 @@ mod tests {
         assert_eq!(*bloom_model_config.max_position_embeddings(), 0);
         assert_eq!(*bloom_model_config.num_attention_heads(), 12);
         assert_eq!(*bloom_model_config.num_hidden_layers(), 12);
-        assert_eq!(bloom_model_config.repo_name(), "bigscience/bloomz-3b");
         assert_eq!(bloom_model_config.model_type(), "bloom");
         assert_eq!(bloom_model_config.available_libraries(), vec![ModelLibraries::PyTorch]);
     }

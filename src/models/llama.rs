@@ -1,7 +1,10 @@
 //! Module for the Llama model
-use super::base::{ ModelConfig, ModelLibraries };
+use serde::Deserialize;
+
+use crate::models::{ ModelConfig, ModelLibraries };
 
 /// A struct representing the Llama architecture parameters
+#[derive(Clone, Debug, Deserialize)]
 pub struct LlamaParams {
     /// Llama model hidden_size
     hidden_size: i32,
@@ -15,12 +18,31 @@ pub struct LlamaParams {
     num_hidden_layers: i32,
 }
 
+/// Llama model parameters implementation
+impl LlamaParams {
+    /// Build a new `LlamaParams` struct based on the provided parameters
+    pub fn new(
+        hidden_size: i32,
+        intermediate_size: i32,
+        max_sequence_length: i32,
+        num_attention_heads: i32,
+        num_hidden_layers: i32,
+    ) -> LlamaParams {
+        LlamaParams {
+            hidden_size,
+            intermediate_size,
+            max_sequence_length,
+            num_attention_heads,
+            num_hidden_layers,
+        }
+    }
+}
+
 /// A struct representing a Llama model configuration
+#[derive(Clone, Debug, Deserialize)]
 pub struct LlamaModelConfig {
     /// Llama model parameters
     params: LlamaParams,
-    /// Llama model Hugging Face repository name
-    repo_name: String,
     /// Llama model type
     model_type: String,
     /// Llama model available libraries
@@ -32,13 +54,11 @@ impl LlamaModelConfig {
     /// Build a new `LlamaModelConfig` struct based on the provided parameters
     pub fn new(
         params: LlamaParams,
-        repo_name: String,
         model_type: String,
         available_libraries: Vec<ModelLibraries>,
     ) -> LlamaModelConfig {
         LlamaModelConfig {
             params,
-            repo_name,
             model_type,
             available_libraries,
         }
@@ -65,10 +85,6 @@ impl ModelConfig for LlamaModelConfig {
 
     fn num_hidden_layers(&self) -> &i32 {
         &self.params.num_hidden_layers
-    }
-
-    fn repo_name(&self) -> &str {
-        &self.repo_name
     }
 
     fn model_type(&self) -> &str {
@@ -115,7 +131,6 @@ mod tests {
 
         let llama_model_config = LlamaModelConfig {
             params: llama_params,
-            repo_name: "decapoda-research/llama-7b-hf".to_string(),
             model_type: "llama".to_string(),
             available_libraries: vec![ModelLibraries::PyTorch],
         };
@@ -125,7 +140,6 @@ mod tests {
         assert_eq!(llama_model_config.params.max_sequence_length, 1024);
         assert_eq!(llama_model_config.params.num_attention_heads, 12);
         assert_eq!(llama_model_config.params.num_hidden_layers, 12);
-        assert_eq!(llama_model_config.repo_name, "decapoda-research/llama-7b-hf");
         assert_eq!(llama_model_config.model_type, "llama");
         assert_eq!(llama_model_config.available_libraries, vec![ModelLibraries::PyTorch]);
     }
@@ -142,7 +156,6 @@ mod tests {
 
         let llama_model_config = LlamaModelConfig {
             params: llama_params,
-            repo_name: "decapoda-research/llama-7b-hf".to_string(),
             model_type: "llama".to_string(),
             available_libraries: vec![ModelLibraries::PyTorch],
         };
@@ -152,7 +165,6 @@ mod tests {
         assert_eq!(*llama_model_config.max_position_embeddings(), 1024);
         assert_eq!(*llama_model_config.num_attention_heads(), 12);
         assert_eq!(*llama_model_config.num_hidden_layers(), 12);
-        assert_eq!(llama_model_config.repo_name(), "decapoda-research/llama-7b-hf");
         assert_eq!(llama_model_config.model_type(), "llama");
         assert_eq!(llama_model_config.available_libraries(), vec![ModelLibraries::PyTorch]);
     }

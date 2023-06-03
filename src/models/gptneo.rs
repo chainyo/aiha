@@ -1,7 +1,10 @@
 //! Module for the GPT-Neo model
-use super::base::{ ModelConfig, ModelLibraries };
+use serde::Deserialize;
+
+use crate::models::{ ModelConfig, ModelLibraries };
 
 /// A struct representing the GPT-Neo architecture parameters
+#[derive(Clone, Debug, Deserialize)]
 pub struct GPTNeoParams {
     /// GPT-Neo model hidden_size
     hidden_size: i32,
@@ -36,11 +39,10 @@ impl GPTNeoParams {
 }
 
 /// A struct representing a GPT-Neo model configuration
+#[derive(Clone, Debug, Deserialize)]
 pub struct GPTNeoModelConfig {
     /// GPT-Neo model parameters
     params: GPTNeoParams,
-    /// GPT-Neo model Hugging Face repository name
-    repo_name: String,
     /// GPT-Neo model type
     model_type: String,
     /// GPT-Neo model available libraries
@@ -52,13 +54,11 @@ impl GPTNeoModelConfig {
     /// Build a new `GPTNeoModelConfig` struct based on the provided parameters
     pub fn new(
         params: GPTNeoParams,
-        repo_name: String,
         model_type: String,
         available_libraries: Vec<ModelLibraries>,
     ) -> GPTNeoModelConfig {
         GPTNeoModelConfig {
             params,
-            repo_name,
             model_type,
             available_libraries,
         }
@@ -87,10 +87,6 @@ impl ModelConfig for GPTNeoModelConfig {
         &self.params.num_hidden_layers
     }
 
-    fn repo_name(&self) -> &str {
-        &self.repo_name
-    }
-
     fn model_type(&self) -> &str {
         &self.model_type
     }
@@ -117,13 +113,12 @@ mod tests {
     #[test]
     fn test_gpt_neo_model_config() {
         let params = GPTNeoParams::new(768,3072,1024,12,12);
-        let model_config = GPTNeoModelConfig::new(params, "EleutherAI/gpt-neo-125M".to_string(), "gpt_neo".to_string(), vec![ModelLibraries::PyTorch]);
+        let model_config = GPTNeoModelConfig::new(params, "gpt_neo".to_string(), vec![ModelLibraries::PyTorch]);
         assert_eq!(model_config.params.hidden_size, 768);
         assert_eq!(model_config.params.intermediate_size, 3072);
         assert_eq!(model_config.params.max_position_embeddings, 1024);
         assert_eq!(model_config.params.num_attention_heads, 12);
         assert_eq!(model_config.params.num_hidden_layers, 12);
-        assert_eq!(model_config.repo_name, "EleutherAI/gpt-neo-125M");
         assert_eq!(model_config.model_type, "gpt_neo");
         assert_eq!(model_config.available_libraries, vec![ModelLibraries::PyTorch]);
     }
@@ -131,13 +126,12 @@ mod tests {
     #[test]
     fn test_gpt_neo_model_trait_implementation() {
         let params = GPTNeoParams::new(768,3072,1024,12,12);
-        let model_config = GPTNeoModelConfig::new(params, "EleutherAI/gpt-neo-125M".to_string(), "gpt_neo".to_string(), vec![ModelLibraries::PyTorch]);
+        let model_config = GPTNeoModelConfig::new(params, "gpt_neo".to_string(), vec![ModelLibraries::PyTorch]);
         assert_eq!(*model_config.hidden_size(), 768);
         assert_eq!(*model_config.intermediate_size(), 3072);
         assert_eq!(*model_config.max_position_embeddings(), 1024);
         assert_eq!(*model_config.num_attention_heads(), 12);
         assert_eq!(*model_config.num_hidden_layers(), 12);
-        assert_eq!(model_config.repo_name(), "EleutherAI/gpt-neo-125M");
         assert_eq!(model_config.model_type(), "gpt_neo");
         assert_eq!(model_config.available_libraries(), vec![ModelLibraries::PyTorch]);
     }

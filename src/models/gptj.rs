@@ -1,7 +1,10 @@
 //! Module for the GPT-J model
-use super::base::{ ModelConfig, ModelLibraries };
+use serde::Deserialize;
+
+use crate::models::{ ModelConfig, ModelLibraries };
 
 /// A struct representing the GPT-J architecture parameters
+#[derive(Clone, Debug, Deserialize)]
 pub struct GPTJParams {
     /// GPT-J model hidden_size
     n_embd: i32,
@@ -37,11 +40,10 @@ impl GPTJParams {
 }
 
 /// A struct representing a GPT-J model configuration
+#[derive(Clone, Debug, Deserialize)]
 pub struct GPTJModelConfig {
     /// GPT-J model parameters
     params: GPTJParams,
-    /// GPT-J model Hugging Face repository name
-    repo_name: String,
     /// GPT-J model type
     model_type: String,
     /// GPT-J model available libraries
@@ -53,13 +55,11 @@ impl GPTJModelConfig {
     /// Build a new `GPTJModelConfig` struct based on the provided parameters
     pub fn new(
         params: GPTJParams,
-        repo_name: String,
         model_type: String,
         available_libraries: Vec<ModelLibraries>,
     ) -> GPTJModelConfig {
         GPTJModelConfig {
             params,
-            repo_name,
             model_type,
             available_libraries,
         }
@@ -86,10 +86,6 @@ impl ModelConfig for GPTJModelConfig {
 
     fn num_hidden_layers(&self) -> &i32 {
         &self.params.n_layer
-    }
-
-    fn repo_name(&self) -> &str {
-        &self.repo_name
     }
 
     fn model_type(&self) -> &str {
@@ -130,13 +126,12 @@ mod tests {
             16,
             28,
         );
-        let model_config = GPTJModelConfig::new(params, "EleutherAI/gpt-j-6B".to_string(), "gpt-j".to_string(), vec![ModelLibraries::PyTorch]);
+        let model_config = GPTJModelConfig::new(params, "gpt-j".to_string(), vec![ModelLibraries::PyTorch]);
         assert_eq!(model_config.params.n_embd, 1024);
         assert_eq!(model_config.params.n_inner, 4096);
         assert_eq!(model_config.params.n_positions, 1024);
         assert_eq!(model_config.params.n_head, 16);
         assert_eq!(model_config.params.n_layer, 28);
-        assert_eq!(model_config.repo_name, "EleutherAI/gpt-j-6B");
         assert_eq!(model_config.model_type, "gpt-j");
         assert_eq!(model_config.available_libraries, vec![ModelLibraries::PyTorch]);
     }
@@ -144,13 +139,12 @@ mod tests {
     #[test]
     fn test_gpt_j_model_trait_implementation() {
         let params = GPTJParams::new(1024, Some(2048), 1024, 16, 28);
-        let model_config = GPTJModelConfig::new(params, "EleutherAI/gpt-j-6B".to_string(), "gpt-j".to_string(), vec![ModelLibraries::PyTorch]);
+        let model_config = GPTJModelConfig::new(params, "gpt-j".to_string(), vec![ModelLibraries::PyTorch]);
         assert_eq!(*model_config.hidden_size(), 1024);
         assert_eq!(*model_config.intermediate_size(), 2048);
         assert_eq!(*model_config.max_position_embeddings(), 1024);
         assert_eq!(*model_config.num_attention_heads(), 16);
         assert_eq!(*model_config.num_hidden_layers(), 28);
-        assert_eq!(model_config.repo_name, "EleutherAI/gpt-j-6B");
         assert_eq!(model_config.model_type, "gpt-j");
         assert_eq!(model_config.available_libraries, vec![ModelLibraries::PyTorch]);
     }

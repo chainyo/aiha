@@ -37,7 +37,6 @@ pub use models::{
     T5Params,
 };
 pub use hub::{
-    Config,
     ModelFile,
     ModelInfo,
     Siblings,

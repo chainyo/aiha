@@ -1,7 +1,10 @@
 //! Module for the GPT2 model
-use super::base::{ ModelConfig, ModelLibraries };
+use serde::Deserialize;
+
+use crate::models::{ ModelConfig, ModelLibraries };
 
 /// A struct representing the GPT2 architecture parameters
+#[derive(Clone, Debug, Deserialize)]
 pub struct GPT2Params {
     /// GPT2 model hidden_size
     n_embd: i32,
@@ -37,11 +40,10 @@ impl GPT2Params {
 }
 
 /// A struct representing a GPT2 model configuration
+#[derive(Clone, Debug, Deserialize)]
 pub struct GPT2ModelConfig {
     /// GPT2 model parameters
     params: GPT2Params,
-    /// GPT2 model Hugging Face repository name
-    repo_name: String,
     /// GPT2 model type
     model_type: String,
     /// GPT2 model available libraries
@@ -53,13 +55,11 @@ impl GPT2ModelConfig {
     /// Build a new `GPT2ModelConfig` struct based on the provided parameters
     pub fn new(
         params: GPT2Params,
-        repo_name: String,
         model_type: String,
         available_libraries: Vec<ModelLibraries>,
     ) -> GPT2ModelConfig {
         GPT2ModelConfig {
             params,
-            repo_name,
             model_type,
             available_libraries,
         }
@@ -88,10 +88,6 @@ impl ModelConfig for GPT2ModelConfig {
         &self.params.n_layer
     }
 
-    fn repo_name(&self) -> &str {
-        &self.repo_name
-    }
-
     fn model_type(&self) -> &str {
         &self.model_type
     }
@@ -118,13 +114,12 @@ mod tests {
     #[test]
     fn test_gpt2_model_config() {
         let params = GPT2Params::new(768, None, 1024, 12, 12);
-        let model_config = GPT2ModelConfig::new(params, "gpt2".to_string(), "gpt2".to_string(), vec![ModelLibraries::Transformers]);
+        let model_config = GPT2ModelConfig::new(params, "gpt2".to_string(), vec![ModelLibraries::Transformers]);
         assert_eq!(model_config.params.n_embd, 768);
         assert_eq!(model_config.params.n_inner, 3072);
         assert_eq!(model_config.params.n_positions, 1024);
         assert_eq!(model_config.params.n_head, 12);
         assert_eq!(model_config.params.n_layer, 12);
-        assert_eq!(model_config.repo_name, "gpt2");
         assert_eq!(model_config.model_type, "gpt2");
         assert_eq!(model_config.available_libraries, vec![ModelLibraries::Transformers]);
     }
@@ -132,13 +127,12 @@ mod tests {
     #[test]
     fn test_gpt2_model_trait_implementation() {
         let params = GPT2Params::new(768, None, 1024, 12, 12);
-        let model_config = GPT2ModelConfig::new(params, "gpt2".to_string(), "gpt2".to_string(), vec![ModelLibraries::Transformers]);
+        let model_config = GPT2ModelConfig::new(params, "gpt2".to_string(), vec![ModelLibraries::Transformers]);
         assert_eq!(*model_config.hidden_size(), 768);
         assert_eq!(*model_config.intermediate_size(), 3072);
         assert_eq!(*model_config.max_position_embeddings(), 1024);
         assert_eq!(*model_config.num_attention_heads(), 12);
         assert_eq!(*model_config.num_hidden_layers(), 12);
-        assert_eq!(model_config.repo_name(), "gpt2");
         assert_eq!(model_config.model_type(), "gpt2");
         assert_eq!(model_config.available_libraries(), vec![ModelLibraries::Transformers]);
     }
