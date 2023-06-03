@@ -9,7 +9,7 @@ pub struct ModelFile {
     /// The filename of the model file
     pub rfilename: String,
     /// The size of the model file
-    pub size: Option<i32>,
+    pub size: Option<i64>,
     /// The file git OID
     pub oid: Option<String>,
 }
@@ -17,7 +17,7 @@ pub struct ModelFile {
 /// Implement the `ModelFile` struct
 impl ModelFile {
     /// Create a new ModelFile struct
-    pub fn new(rfilename: String, size: Option<i32>, oid: Option<String>) -> Self {
+    pub fn new(rfilename: String, size: Option<i64>, oid: Option<String>) -> Self {
         Self {
             rfilename,
             size,
@@ -29,7 +29,7 @@ impl ModelFile {
         &self.rfilename
     }
     /// Retrieve the size of the model file
-    pub fn get_size(&self) -> Option<i32> {
+    pub fn get_size(&self) -> Option<i64> {
         self.size
     }
     /// Retrieve the file git OID
