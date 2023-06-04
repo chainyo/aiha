@@ -136,11 +136,7 @@ impl ModelConfigTrait for GPTJModelConfig {
         //     None => return Err(ModelError::MissingField("available_libraries".to_string())),
         // };
 
-        Ok(GPTJModelConfig {
-            params,
-            model_type,
-            available_libraries,
-        })
+        Ok(GPTJModelConfig::new(params, model_type, available_libraries))
     }
 }
 
