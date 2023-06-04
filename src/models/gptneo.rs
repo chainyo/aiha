@@ -92,8 +92,8 @@ impl GPTNeoModelConfig {
     }
 }
 
-/// Implementation of the `ModelConfig` trait for `GPTNeoModelConfig`
-impl ModelConfig for GPTNeoModelConfig {
+/// Implementation of the `ModelConfigTrait` trait for `GPTNeoModelConfig`
+impl ModelConfigTrait for GPTNeoModelConfig {
     fn hidden_size(&self) -> i32 {
         self.params.hidden_size
     }

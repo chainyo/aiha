@@ -91,7 +91,7 @@ impl GPTJModelConfig {
     }
 }
 
-/// Implementation of the `ModelConfig` trait for `GPTJModelConfig`
+/// Implementation of the `ModelConfigTrait` trait for `GPTJModelConfig`
 impl ModelConfigTrait for GPTJModelConfig {
     fn hidden_size(&self) -> i32 {
         self.params.n_embd

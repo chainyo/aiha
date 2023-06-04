@@ -96,7 +96,7 @@ impl BertModelConfig {
     }
 }
 
-/// Implementation of the `ModelConfig` trait for `BertModelConfig`
+/// Implementation of the `ModelConfigTrait` trait for `BertModelConfig`
 impl ModelConfigTrait for BertModelConfig {
     fn hidden_size(&self) -> i32 {
         self.params.hidden_size

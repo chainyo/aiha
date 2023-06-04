@@ -1,7 +1,8 @@
 //! Module for the T5 model
 use serde::Deserialize;
+use serde_json::Value;
 
-use crate::models::{ ModelConfig, ModelLibraries };
+use crate::models::{ ModelConfigTrait, ModelError, ModelLibraries };
 
 /// A struct representing the T5 architecture parameters
 #[derive(Clone, Debug, Deserialize)]
@@ -36,6 +37,30 @@ impl T5Params {
             n_layers,
         }
     }
+    /// Build from a JSON value
+    pub fn from_json(value: Value) -> Result<T5Params, ModelError> {
+        let d_model = value["d_model"]
+            .as_i64()
+            .ok_or(ModelError::MissingField("d_model".to_string()))? as i32;
+
+        let d_ff = value["d_ff"]
+            .as_i64()
+            .ok_or(ModelError::MissingField("d_ff".to_string()))? as i32;
+
+        let n_positions = value["n_positions"]
+            .as_i64()
+            .ok_or(ModelError::MissingField("n_positions".to_string()))? as i32;
+
+        let n_heads = value["n_heads"]
+            .as_i64()
+            .ok_or(ModelError::MissingField("n_heads".to_string()))? as i32;
+
+        let n_layers = value["n_layers"]
+            .as_i64()
+            .ok_or(ModelError::MissingField("n_layers".to_string()))? as i32;
+
+        Ok(T5Params::new(d_model, d_ff, n_positions, n_heads, n_layers))
+    }
 }
 
 /// A struct representing a T5 model configuration
@@ -65,8 +90,8 @@ impl T5ModelConfig {
     }
 }
 
-/// Implementation of the `ModelConfig` trait for `T5ModelConfig`
-impl ModelConfig for T5ModelConfig {
+/// Implementation of the `ModelConfigTrait` trait for `T5ModelConfig`
+impl ModelConfigTrait for T5ModelConfig {
     fn hidden_size(&self) -> i32 {
         self.params.d_model
     }
@@ -93,6 +118,24 @@ impl ModelConfig for T5ModelConfig {
 
     fn available_libraries(&self) -> &[ModelLibraries] {
         &self.available_libraries
+    }
+
+    fn from_json(value: Value) -> Result<Self, ModelError> where Self: Sized {
+        let params = T5Params::from_json(value.clone())?;
+
+        let model_type = match value["model_type"].as_str() {
+            Some(model_type) => model_type.to_string(),
+            None => return Err(ModelError::MissingField("model_type".to_string())),
+        };
+
+        // TODO: Implement this
+        let available_libraries = vec![ModelLibraries::PyTorch];
+        // let available_libraries = match value["available_libraries"].as_array() {
+        //     Some(al) => al.iter().map(|v| ModelLibraries::from_str(v.as_str().unwrap()).unwrap()).collect(),
+        //     None => return Err(ModelError::MissingField("available_libraries".to_string())),
+        // };
+
+        Ok(T5ModelConfig::new(params, model_type, available_libraries))
     }
 }
 

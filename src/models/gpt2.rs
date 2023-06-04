@@ -91,7 +91,7 @@ impl GPT2ModelConfig {
     }
 }
 
-/// Implementation of the `ModelConfig` trait for `GPT2ModelConfig`
+/// Implementation of the `ModelConfigTrait` trait for `GPT2ModelConfig`
 impl ModelConfigTrait for GPT2ModelConfig {
     fn hidden_size(&self) -> i32 {
         self.params.n_embd

@@ -88,7 +88,7 @@ impl BloomModelConfig {
     }
 }
 
-/// Implementation of the `ModelConfig` trait for `BloomModelConfig`
+/// Implementation of the `ModelConfigTrait` trait for `BloomModelConfig`
 impl ModelConfigTrait for BloomModelConfig {
     fn hidden_size(&self) -> i32 {
         self.params.n_embd
