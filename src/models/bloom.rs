@@ -1,7 +1,8 @@
 //! Module for the BLOOM model
 use serde::Deserialize;
+use serde_json::Value;
 
-use crate::models::{ ModelConfig, ModelLibraries };
+use crate::models::{ ModelConfigTrait, ModelError, ModelLibraries };
 
 /// A struct representing the BLOOM architecture parameters
 #[derive(Clone, Debug, Deserialize)]
@@ -15,6 +16,49 @@ pub struct BloomParams {
     num_attention_heads: i32,
     /// BLOOM model num_hidden_layers
     n_layer: i32,
+}
+
+/// BLOOM model parameters implementation
+impl BloomParams {
+    /// Build a new `BloomParams` struct based on the provided parameters
+    pub fn new(
+        n_embd: i32,
+        n_inner: i32,
+        num_attention_heads: i32,
+        n_layer: i32,
+    ) -> BloomParams {
+        BloomParams {
+            n_embd,
+            n_inner,
+            num_attention_heads,
+            n_layer,
+        }
+    }
+    /// Build from a JSON value
+    pub fn from_json(value: Value) -> Result<BloomParams, ModelError> {
+        let n_embd = value["n_embd"]
+            .as_i64()
+            .ok_or(ModelError::MissingField("n_embd".to_string()))? as i32;
+
+        let n_inner = value["n_inner"]
+            .as_i64()
+            .ok_or(ModelError::MissingField("n_inner".to_string()))? as i32;
+
+        let num_attention_heads = value["num_attention_heads"]
+            .as_i64()
+            .ok_or(ModelError::MissingField("num_attention_heads".to_string()))? as i32;
+
+        let n_layer = value["n_layer"]
+            .as_i64()
+            .ok_or(ModelError::MissingField("n_layer".to_string()))? as i32;
+
+        Ok(BloomParams::new(
+            n_embd,
+            n_inner,
+            num_attention_heads,
+            n_layer,
+        ))
+    }
 }
 
 /// A struct representing a BLOOM model configuration
@@ -45,7 +89,7 @@ impl BloomModelConfig {
 }
 
 /// Implementation of the `ModelConfig` trait for `BloomModelConfig`
-impl ModelConfig for BloomModelConfig {
+impl ModelConfigTrait for BloomModelConfig {
     fn hidden_size(&self) -> i32 {
         self.params.n_embd
     }
@@ -73,6 +117,28 @@ impl ModelConfig for BloomModelConfig {
 
     fn available_libraries(&self) -> &[ModelLibraries] {
         &self.available_libraries
+    }
+
+    fn from_json(value: Value) -> Result<Self, ModelError> {
+        let params = BloomParams::from_json(value.clone())?;
+
+        let model_type = match value["model_type"].as_str() {
+            Some(model_type) => model_type.to_string(),
+            None => return Err(ModelError::MissingField("model_type".to_string())),
+        };
+
+        // TODO: Implement this
+        let available_libraries = vec![ModelLibraries::PyTorch];
+        // let available_libraries = match value["available_libraries"].as_array() {
+        //     Some(al) => al.iter().map(|v| ModelLibraries::from_str(v.as_str().unwrap()).unwrap()).collect(),
+        //     None => return Err(ModelError::MissingField("available_libraries".to_string())),
+        // };
+
+        Ok(BloomModelConfig::new(
+            params,
+            model_type,
+            available_libraries,
+        ))
     }
 }
 

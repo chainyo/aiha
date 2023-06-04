@@ -1,7 +1,8 @@
 //! Module for the GPT2 model
 use serde::Deserialize;
+use serde_json::Value;
 
-use crate::models::{ ModelConfig, ModelLibraries };
+use crate::models::{ ModelConfigTrait, ModelError, ModelLibraries };
 
 /// A struct representing the GPT2 architecture parameters
 #[derive(Clone, Debug, Deserialize)]
@@ -37,6 +38,30 @@ impl GPT2Params {
             n_layer,
         }
     }
+    /// Build from a JSON value
+    pub fn from_json(value: Value) -> Result<GPT2Params, ModelError> {
+        let n_embd = value["n_embd"]
+            .as_i64()
+            .ok_or(ModelError::MissingField("n_embd".to_string()))? as i32;
+
+        let n_inner = value["n_inner"]
+            .as_i64()
+            .map(|val| val as i32); // map the i64 to i32 if it exists
+
+        let n_positions = value["n_positions"]
+            .as_i64()
+            .ok_or(ModelError::MissingField("n_positions".to_string()))? as i32;
+
+        let n_head = value["n_head"]
+            .as_i64()
+            .ok_or(ModelError::MissingField("n_head".to_string()))? as i32;
+
+        let n_layer = value["n_layer"]
+            .as_i64()
+            .ok_or(ModelError::MissingField("n_layer".to_string()))? as i32;
+
+        Ok(GPT2Params::new(n_embd, n_inner, n_positions, n_head, n_layer))
+    }
 }
 
 /// A struct representing a GPT2 model configuration
@@ -67,7 +92,7 @@ impl GPT2ModelConfig {
 }
 
 /// Implementation of the `ModelConfig` trait for `GPT2ModelConfig`
-impl ModelConfig for GPT2ModelConfig {
+impl ModelConfigTrait for GPT2ModelConfig {
     fn hidden_size(&self) -> i32 {
         self.params.n_embd
     }
@@ -94,6 +119,24 @@ impl ModelConfig for GPT2ModelConfig {
 
     fn available_libraries(&self) -> &[ModelLibraries] {
         &self.available_libraries
+    }
+
+    fn from_json(value: Value) -> Result<Self, ModelError> where Self: Sized {
+        let params = GPT2Params::from_json(value.clone())?;
+    
+        let model_type = match value["model_type"].as_str() {
+            Some(model_type) => model_type.to_string(),
+            None => return Err(ModelError::MissingField("model_type".to_string())),
+        };
+
+        // TODO: Implement this
+        let available_libraries = vec![ModelLibraries::PyTorch];
+        // let available_libraries = match value["available_libraries"].as_array() {
+        //     Some(al) => al.iter().map(|v| ModelLibraries::from_str(v.as_str().unwrap()).unwrap()).collect(),
+        //     None => return Err(ModelError::MissingField("available_libraries".to_string())),
+        // };
+
+        Ok(GPT2ModelConfig::new(params, model_type, available_libraries))
     }
 }
 
