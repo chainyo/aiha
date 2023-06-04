@@ -8,12 +8,14 @@ use serde_json::json;
 use tokio::time::Duration;
 
 use crate::hub::{
+    ModelConfig,
     ModelInfo,
     Siblings,
     CUSTOM_ENCODE_SET,
     HUB_ENDPOINT,
     build_headers,
 };
+use crate::models::ModelConfigTrait;
 
 /// Make a request to the Hugging Face Hub API to retrieve the model info
 pub async fn retrieve_model_info(
@@ -38,7 +40,6 @@ pub async fn retrieve_model_info(
 
     let headers = build_headers(token)?;
 
-    // check if timeout is not none and create a Duration object with the timeout value in seconds
     let _timeout = if let Some(timeout) = timeout {
         Some(Duration::from_secs_f32(timeout))
     } else {
@@ -54,7 +55,7 @@ pub async fn retrieve_model_info(
         .await?;
 
     let response_json = response.json::<serde_json::Value>().await?;
-    let model_info = ModelInfo::from(response_json);
+    let model_info = ModelInfo::from_json(response_json);
     Ok(model_info)
 }
 
@@ -99,6 +100,38 @@ pub async fn list_files_info(
                         continue;
                     }
         }
+    }
+    Ok(())
+}
+
+/// Get the model config file from the Hugging Face Hub API and store it in the ModelInfo struct
+pub async fn get_model_config(
+    repo_id: &str,
+    revision: Option<&str>,
+    model_config: &mut Option<ModelConfig>,
+    token: Option<&str>,
+) -> Result<(), Box<dyn Error>> {
+    let path = if let Some(rev) = revision.as_ref() {
+        let encoded_revision = utf8_percent_encode(rev, CUSTOM_ENCODE_SET).to_string();
+        format!("{}/{}/raw/{}/config.json", HUB_ENDPOINT, repo_id, encoded_revision)
+    } else {
+        format!("{}/{}/raw/main/config.json", HUB_ENDPOINT, repo_id)
+    };
+    let headers = build_headers(token)?;
+
+    let client = Client::new();
+    let response = client.get(path)
+        .headers(headers)
+        .send()
+        .await?;
+
+    let response_json = response.json::<serde_json::Value>().await?;
+    let _config = ModelConfig::from_json(response_json);
+    if let Ok(config) = _config {
+        *model_config = Some(config);
+    } else {
+        // handle error, set `model_info.config` to `None`
+        *model_config = None;
     }
     Ok(())
 }
@@ -160,8 +193,6 @@ mod tests {
                 ModelFile::new("vocab.json".to_string(), None, None),
             ])
         );
-        assert_eq!(model_info.config.as_ref().unwrap().architectures, vec!["GPTJForCausalLM".to_string()]);
-        assert_eq!(model_info.config.as_ref().unwrap().model_type, "gptj".to_string());
         assert_eq!(
             model_info.security_status,
             Some(from_value(json!({
@@ -202,5 +233,31 @@ mod tests {
             assert!(file.size.is_some());
             assert!(file.oid.is_some());
         }
+    }
+
+    #[tokio::test]
+    async fn test_get_model_config() {
+        let repo_id = "EleutherAI/gpt-j-6b";
+        let revision = Some("main");
+        let timeout = Some(30.0);
+        let files_metadata = Some(false);
+        let token = Some("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");
+
+        let result = retrieve_model_info(
+            repo_id, revision, timeout, files_metadata, token
+        ).await;
+        assert!(result.is_ok());
+        let mut model_info = result.unwrap();
+
+        let get_config = get_model_config(
+            model_info.model_id.as_ref().unwrap(),
+            revision,
+            &mut model_info.config,
+            token
+        ).await;
+        assert!(get_config.is_ok());
+
+        // Check that the config is set
+        assert!(model_info.config.is_some());
     }
 }

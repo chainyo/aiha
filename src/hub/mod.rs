@@ -18,6 +18,7 @@ pub use siblings::Siblings;
 // Hub methods
 mod api;
 pub use api::{
+    get_model_config,
     list_files_info,
     retrieve_model_info,
 };

@@ -97,8 +97,12 @@ pub enum ModelLibraries {
 /// Model error
 #[derive(Debug)]
 pub enum ModelError {
+    /// JSON error
     Json(SerdeJsonError),
+    /// Missing field error
     MissingField(String),
+    /// Model not implemented error
+    ModelNotImplemented(String),
 }
 
 impl Display for ModelError {
@@ -106,6 +110,13 @@ impl Display for ModelError {
         match self {
             ModelError::Json(e) => write!(f, "JSON error: {}", e),
             ModelError::MissingField(field) => write!(f, "Missing field: {}", field),
+            ModelError::ModelNotImplemented(model) => write!(
+                f,
+                "Model not implemented: {}.\
+                \nPlease open an issue on the GitHub repository: \
+                https://github.com/chainyo/aiha/issues",
+                model
+            ),
         }
     }
 }
@@ -119,7 +130,7 @@ impl From<SerdeJsonError> for ModelError {
 }
 
 /// Generic trait for Hugging Face models
-pub trait ModelConfig {
+pub trait ModelConfigTrait {
     /// Returns the model hidden size
     fn hidden_size(&self) -> i32 { Default::default() }
     /// Returns the model intermediate size
@@ -147,7 +158,7 @@ mod tests {
 
     struct MockModelConfig;
 
-    impl ModelConfig for MockModelConfig {
+    impl ModelConfigTrait for MockModelConfig {
         fn hidden_size(&self) -> i32 {
             1024
         }
@@ -176,7 +187,7 @@ mod tests {
             &[ModelLibraries::PyTorch]
         }
 
-        fn from_json(value: Value) -> Result<Self, ModelError> where Self: Sized {
+        fn from_json(_value: Value) -> Result<Self, ModelError> where Self: Sized {
             Ok(MockModelConfig)
         }
     }

@@ -1,7 +1,8 @@
 //! Module for the GPT-J model
 use serde::Deserialize;
+use serde_json::Value;
 
-use crate::models::{ ModelConfig, ModelLibraries };
+use crate::models::{ ModelConfigTrait, ModelError, ModelLibraries };
 
 /// A struct representing the GPT-J architecture parameters
 #[derive(Clone, Debug, Deserialize)]
@@ -37,6 +38,30 @@ impl GPTJParams {
             n_layer,
         }
     }
+    /// Build from a JSON value
+    pub fn from_json(value: Value) -> Result<GPTJParams, ModelError> {
+        let n_embd = value["n_embd"]
+            .as_i64()
+            .ok_or(ModelError::MissingField("n_embd".to_string()))? as i32;
+        
+        let n_inner = value["n_inner"]
+            .as_i64()
+            .map(|val| val as i32); // map the i64 to i32 if it exists
+    
+        let n_positions = value["n_positions"]
+            .as_i64()
+            .ok_or(ModelError::MissingField("n_positions".to_string()))? as i32;
+    
+        let n_head = value["n_head"]
+            .as_i64()
+            .ok_or(ModelError::MissingField("n_head".to_string()))? as i32;
+    
+        let n_layer = value["n_layer"]
+            .as_i64()
+            .ok_or(ModelError::MissingField("n_layer".to_string()))? as i32;
+    
+        Ok(GPTJParams::new(n_embd, n_inner, n_positions, n_head, n_layer))
+    }
 }
 
 /// A struct representing a GPT-J model configuration
@@ -67,7 +92,7 @@ impl GPTJModelConfig {
 }
 
 /// Implementation of the `ModelConfig` trait for `GPTJModelConfig`
-impl ModelConfig for GPTJModelConfig {
+impl ModelConfigTrait for GPTJModelConfig {
     fn hidden_size(&self) -> i32 {
         self.params.n_embd
     }
@@ -94,6 +119,28 @@ impl ModelConfig for GPTJModelConfig {
 
     fn available_libraries(&self) -> &[ModelLibraries] {
         &self.available_libraries
+    }
+
+    fn from_json(value: Value) -> Result<Self, ModelError> {
+        let params = GPTJParams::from_json(value.clone())?;
+
+        let model_type = match value["model_type"].as_str() {
+            Some(model_type) => model_type.to_string(),
+            None => return Err(ModelError::MissingField("model_type".to_string())),
+        };
+
+        // TODO: Implement this
+        let available_libraries = vec![ModelLibraries::PyTorch];
+        // let available_libraries = match value["available_libraries"].as_array() {
+        //     Some(al) => al.iter().map(|v| ModelLibraries::from_str(v.as_str().unwrap()).unwrap()).collect(),
+        //     None => return Err(ModelError::MissingField("available_libraries".to_string())),
+        // };
+
+        Ok(GPTJModelConfig {
+            params,
+            model_type,
+            available_libraries,
+        })
     }
 }
 

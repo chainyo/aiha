@@ -1,10 +1,8 @@
 //! Module for the Bert model
-use std::error::Error;
-
 use serde::Deserialize;
 use serde_json::Value;
 
-use crate::models::{ ModelConfig, ModelError, ModelLibraries };
+use crate::models::{ ModelConfigTrait, ModelError, ModelLibraries };
 
 /// A struct representing the Bert architecture parameters
 #[derive(Clone, Debug, Deserialize)]
@@ -99,7 +97,7 @@ impl BertModelConfig {
 }
 
 /// Implementation of the `ModelConfig` trait for `BertModelConfig`
-impl ModelConfig for BertModelConfig {
+impl ModelConfigTrait for BertModelConfig {
     fn hidden_size(&self) -> i32 {
         self.params.hidden_size
     }
@@ -132,7 +130,7 @@ impl ModelConfig for BertModelConfig {
         let params = BertParams::from_json(value.clone())?;
         
         let model_type = match value["model_type"].as_str() {
-            Some(mt) => mt.to_string(),
+            Some(model_type) => model_type.to_string(),
             None => return Err(ModelError::MissingField("model_type".to_string())),
         };
 
