@@ -12,26 +12,35 @@
 //! for inference and training any model on the esteemed Hugging Face Hub.
 //!
 pub mod hardware;
+pub mod hub;
 pub mod models;
 
 pub use hardware::{ scan_hardware, Hardware, NvidiaDevice };
 pub use models::{ 
-    ModelConfig,
+    ModelConfigTrait,
     ModelLibraries,
     BertModelConfig,
     BertParams,
-    BloomModelConfig,
-    BloomParams,
-    GPT2ModelConfig,
-    GPT2Params,
+    // BloomModelConfig,
+    // BloomParams,
+    // GPT2ModelConfig,
+    // GPT2Params,
     GPTJModelConfig,
     GPTJParams,
-    GPTNeoModelConfig,
-    GPTNeoParams,
-    LlamaModelConfig,
-    LlamaParams,
-    OPTModelConfig,
-    OPTParams,
-    T5ModelConfig,
-    T5Params,
+    // GPTNeoModelConfig,
+    // GPTNeoParams,
+    // LlamaModelConfig,
+    // LlamaParams,
+    // OPTModelConfig,
+    // OPTParams,
+    // T5ModelConfig,
+    // T5Params,
+};
+pub use hub::{
+    ModelFile,
+    ModelInfo,
+    Siblings,
+    build_headers,
+    CUSTOM_ENCODE_SET,
+    HUB_ENDPOINT,
 };

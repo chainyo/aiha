@@ -1,7 +1,12 @@
 //! Base traits, structs and enums for models.
+use std::error::Error;
+use std::fmt::{ Display, Formatter, Result as FmtResult };
+
+use serde_derive::Deserialize;
+use serde_json::{ Error as SerdeJsonError, Value };
 
 /// Enumerate the different model libraries available on the Hugging Face Hub
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, Debug, Deserialize, PartialEq)]
 pub enum ModelLibraries {
     /// Adapter Transformers library
     AdapterTransformers,
@@ -89,25 +94,61 @@ pub enum ModelLibraries {
     Transformers,
 }
 
-/// Generic trait for Hugging Face models
-pub trait ModelConfig {
-    /// Returns the model hidden size
-    fn hidden_size(&self) -> &i32;
-    /// Returns the model intermediate size
-    fn intermediate_size(&self) -> &i32;
-    /// Returns the model max position embeddings
-    fn max_position_embeddings(&self) -> &i32;
-    /// Returns the model number of attention heads
-    fn num_attention_heads(&self) -> &i32;
-    /// Returns the model number of hidden layers
-    fn num_hidden_layers(&self) -> &i32;
-    /// Returns the model repository name
-    fn repo_name(&self) -> &str;
-    /// Returns the model type
-    fn model_type(&self) -> &str;
-    /// Returns the model libraries
-    fn available_libraries(&self) -> &[ModelLibraries];
+/// Model error
+#[derive(Debug)]
+pub enum ModelError {
+    /// JSON error
+    Json(SerdeJsonError),
+    /// Missing field error
+    MissingField(String),
+    /// Model not implemented error
+    ModelNotImplemented(String),
 }
+
+impl Display for ModelError {
+    fn fmt(&self, f: &mut Formatter) -> FmtResult {
+        match self {
+            ModelError::Json(e) => write!(f, "JSON error: {}", e),
+            ModelError::MissingField(field) => write!(f, "Missing field: {}", field),
+            ModelError::ModelNotImplemented(model) => write!(
+                f,
+                "Model not implemented: {}.\
+                \nPlease open an issue on the GitHub repository: \
+                https://github.com/chainyo/aiha/issues",
+                model
+            ),
+        }
+    }
+}
+
+impl Error for ModelError {}
+
+impl From<SerdeJsonError> for ModelError {
+    fn from(error: SerdeJsonError) -> Self {
+        ModelError::Json(error)
+    }
+}
+
+/// Generic trait for Hugging Face models
+pub trait ModelConfigTrait {
+    /// Returns the model hidden size
+    fn hidden_size(&self) -> i32 { Default::default() }
+    /// Returns the model intermediate size
+    fn intermediate_size(&self) -> i32 { Default::default() }
+    /// Returns the model max position embeddings
+    fn max_position_embeddings(&self) -> i32 { Default::default() }
+    /// Returns the model number of attention heads
+    fn num_attention_heads(&self) -> i32 { Default::default() }
+    /// Returns the model number of hidden layers
+    fn num_hidden_layers(&self) -> i32 { Default::default() }
+    /// Returns the model type
+    fn model_type(&self) -> &str { "" }
+    /// Returns the model libraries
+    fn available_libraries(&self) -> &[ModelLibraries] { &[] }
+    /// Create a new model config from a JSON value.
+    fn from_json(value: Value) -> Result<Self, ModelError> where Self: Sized;
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -117,29 +158,25 @@ mod tests {
 
     struct MockModelConfig;
 
-    impl ModelConfig for MockModelConfig {
-        fn hidden_size(&self) -> &i32 {
-            &1024
+    impl ModelConfigTrait for MockModelConfig {
+        fn hidden_size(&self) -> i32 {
+            1024
         }
 
-        fn intermediate_size(&self) -> &i32 {
-            &4096
+        fn intermediate_size(&self) -> i32 {
+            4096
         }
 
-        fn max_position_embeddings(&self) -> &i32 {
-            &512
+        fn max_position_embeddings(&self) -> i32 {
+            512
         }
 
-        fn num_attention_heads(&self) -> &i32 {
-            &16
+        fn num_attention_heads(&self) -> i32 {
+            16
         }
 
-        fn num_hidden_layers(&self) -> &i32 {
-            &12
-        }
-
-        fn repo_name(&self) -> &str {
-            "mock"
+        fn num_hidden_layers(&self) -> i32 {
+            12
         }
 
         fn model_type(&self) -> &str {
@@ -149,17 +186,20 @@ mod tests {
         fn available_libraries(&self) -> &[ModelLibraries] {
             &[ModelLibraries::PyTorch]
         }
+
+        fn from_json(_value: Value) -> Result<Self, ModelError> where Self: Sized {
+            Ok(MockModelConfig)
+        }
     }
 
     #[test]
     fn test_hub_model_config() {
         let config = MockModelConfig;
-        assert_eq!(*config.hidden_size(), 1024);
-        assert_eq!(*config.intermediate_size(), 4096);
-        assert_eq!(*config.max_position_embeddings(), 512);
-        assert_eq!(*config.num_attention_heads(), 16);
-        assert_eq!(*config.num_hidden_layers(), 12);
-        assert_eq!(config.repo_name(), "mock");
+        assert_eq!(config.hidden_size(), 1024);
+        assert_eq!(config.intermediate_size(), 4096);
+        assert_eq!(config.max_position_embeddings(), 512);
+        assert_eq!(config.num_attention_heads(), 16);
+        assert_eq!(config.num_hidden_layers(), 12);
         assert_eq!(config.model_type(), "mock");
         assert_eq!(config.available_libraries(), vec![ModelLibraries::PyTorch]);
     }
