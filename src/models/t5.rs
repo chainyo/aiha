@@ -2,7 +2,7 @@
 use serde::Deserialize;
 use serde_json::Value;
 
-use crate::models::{ ModelConfigTrait, ModelError, ModelLibraries };
+use crate::models::{ModelConfigTrait, ModelError, ModelLibraries};
 
 /// A struct representing the T5 architecture parameters
 #[derive(Clone, Debug, Deserialize)]
@@ -22,13 +22,7 @@ pub struct T5Params {
 /// T5 model parameters implementation
 impl T5Params {
     /// Build a new `T5Params` struct based on the provided parameters
-    pub fn new(
-        d_model: i32,
-        d_ff: i32,
-        n_positions: i32,
-        n_heads: i32,
-        n_layers: i32,
-    ) -> T5Params {
+    pub fn new(d_model: i32, d_ff: i32, n_positions: i32, n_heads: i32, n_layers: i32) -> T5Params {
         T5Params {
             d_model,
             d_ff,
@@ -49,7 +43,8 @@ impl T5Params {
 
         let n_positions = value["n_positions"]
             .as_i64()
-            .ok_or(ModelError::MissingField("n_positions".to_string()))? as i32;
+            .ok_or(ModelError::MissingField("n_positions".to_string()))?
+            as i32;
 
         let n_heads = value["n_heads"]
             .as_i64()
@@ -120,7 +115,10 @@ impl ModelConfigTrait for T5ModelConfig {
         &self.available_libraries
     }
 
-    fn from_json(value: Value) -> Result<Self, ModelError> where Self: Sized {
+    fn from_json(value: Value) -> Result<Self, ModelError>
+    where
+        Self: Sized,
+    {
         let params = T5Params::from_json(value.clone())?;
 
         let model_type = match value["model_type"].as_str() {
@@ -167,7 +165,10 @@ mod tests {
         assert_eq!(t5_model_config.params.n_heads, 12);
         assert_eq!(t5_model_config.params.n_layers, 12);
         assert_eq!(t5_model_config.model_type, "t5");
-        assert_eq!(t5_model_config.available_libraries, vec![ModelLibraries::TensorFlow]);
+        assert_eq!(
+            t5_model_config.available_libraries,
+            vec![ModelLibraries::TensorFlow]
+        );
     }
 
     #[test]
@@ -184,6 +185,9 @@ mod tests {
         assert_eq!(t5_model_config.num_attention_heads(), 12);
         assert_eq!(t5_model_config.num_hidden_layers(), 12);
         assert_eq!(t5_model_config.model_type(), "t5");
-        assert_eq!(t5_model_config.available_libraries(), vec![ModelLibraries::TensorFlow]);
+        assert_eq!(
+            t5_model_config.available_libraries(),
+            vec![ModelLibraries::TensorFlow]
+        );
     }
 }

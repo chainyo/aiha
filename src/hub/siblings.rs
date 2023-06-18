@@ -14,9 +14,7 @@ pub struct Siblings {
 impl Siblings {
     /// Create a new Siblings struct
     pub fn new(siblings: Vec<ModelFile>) -> Self {
-        Self {
-            siblings,
-        }
+        Self { siblings }
     }
     /// Get the list of siblings as a vector of strings
     pub fn get_sibling_names(&self) -> Vec<&'_ String> {
@@ -38,7 +36,11 @@ mod tests {
 
     #[test]
     fn test_siblings_new() {
-        let siblings = vec![ModelFile::new("model.json".to_string(), Some(1), Some("123".to_string()))];
+        let siblings = vec![ModelFile::new(
+            "model.json".to_string(),
+            Some(1),
+            Some("123".to_string()),
+        )];
         let siblings = Siblings::new(siblings);
         assert_eq!(siblings.siblings.len(), 1);
     }
@@ -60,9 +62,17 @@ mod tests {
 
     #[test]
     fn test_siblings_partial_eq() {
-        let s1 = vec![ModelFile::new("model.json".to_string(), Some(1), Some("123".to_string()))];
+        let s1 = vec![ModelFile::new(
+            "model.json".to_string(),
+            Some(1),
+            Some("123".to_string()),
+        )];
         let siblings = Siblings::new(s1);
-        let s2 = vec![ModelFile::new("model.json".to_string(), Some(1), Some("123".to_string()))];
+        let s2 = vec![ModelFile::new(
+            "model.json".to_string(),
+            Some(1),
+            Some("123".to_string()),
+        )];
         let siblings2 = Siblings::new(s2);
         assert_eq!(siblings, siblings2);
     }

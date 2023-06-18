@@ -8,12 +8,7 @@ use serde_json::json;
 use tokio::time::Duration;
 
 use crate::hub::{
-    ModelConfig,
-    ModelInfo,
-    Siblings,
-    CUSTOM_ENCODE_SET,
-    HUB_ENDPOINT,
-    build_headers,
+    build_headers, ModelConfig, ModelInfo, Siblings, CUSTOM_ENCODE_SET, HUB_ENDPOINT,
 };
 use crate::models::ModelConfigTrait;
 
@@ -27,7 +22,10 @@ pub async fn retrieve_model_info(
 ) -> Result<ModelInfo, Box<dyn Error>> {
     let path = if let Some(rev) = revision.as_ref() {
         let encoded_revision = utf8_percent_encode(rev, CUSTOM_ENCODE_SET).to_string();
-        format!("{}/api/models/{}/revision/{}", HUB_ENDPOINT, repo_id, encoded_revision)
+        format!(
+            "{}/api/models/{}/revision/{}",
+            HUB_ENDPOINT, repo_id, encoded_revision
+        )
     } else {
         format!("{}/api/models/{}", HUB_ENDPOINT, repo_id)
     };
@@ -47,7 +45,8 @@ pub async fn retrieve_model_info(
     };
 
     let client = Client::new();
-    let response = client.get(path)
+    let response = client
+        .get(path)
         .headers(headers)
         .timeout(_timeout.unwrap())
         .query(&params)
@@ -68,7 +67,10 @@ pub async fn list_files_info(
 ) -> Result<(), Box<dyn Error>> {
     let path = if let Some(rev) = revision.as_ref() {
         let encoded_revision = utf8_percent_encode(rev, CUSTOM_ENCODE_SET).to_string();
-        format!("{}/api/models/{}/paths-info/{}", HUB_ENDPOINT, repo_id, encoded_revision)
+        format!(
+            "{}/api/models/{}/paths-info/{}",
+            HUB_ENDPOINT, repo_id, encoded_revision
+        )
     } else {
         format!("{}/api/models/{}/paths-info/main", HUB_ENDPOINT, repo_id)
     };
@@ -79,7 +81,8 @@ pub async fn list_files_info(
     });
 
     let client = Client::new();
-    let response = client.post(path)
+    let response = client
+        .post(path)
         .headers(headers)
         .json(&data)
         .send()
@@ -89,16 +92,16 @@ pub async fn list_files_info(
 
     if let Some(response_files) = response.as_array() {
         for item in response_files.iter() {
-            if let Some(
-                existing_model_file
-            ) = siblings.siblings
-                    .iter_mut()
-                    .find(|file| file.get_rfilename() == item["path"].as_str().unwrap()) {
-                        existing_model_file.size = item["size"].as_i64();
-                        existing_model_file.oid = item["oid"].as_str().map(|s| s.to_string());
-                    } else {
-                        continue;
-                    }
+            if let Some(existing_model_file) = siblings
+                .siblings
+                .iter_mut()
+                .find(|file| file.get_rfilename() == item["path"].as_str().unwrap())
+            {
+                existing_model_file.size = item["size"].as_i64();
+                existing_model_file.oid = item["oid"].as_str().map(|s| s.to_string());
+            } else {
+                continue;
+            }
         }
     }
     Ok(())
@@ -113,17 +116,17 @@ pub async fn get_model_config(
 ) -> Result<(), Box<dyn Error>> {
     let path = if let Some(rev) = revision.as_ref() {
         let encoded_revision = utf8_percent_encode(rev, CUSTOM_ENCODE_SET).to_string();
-        format!("{}/{}/raw/{}/config.json", HUB_ENDPOINT, repo_id, encoded_revision)
+        format!(
+            "{}/{}/raw/{}/config.json",
+            HUB_ENDPOINT, repo_id, encoded_revision
+        )
     } else {
         format!("{}/{}/raw/main/config.json", HUB_ENDPOINT, repo_id)
     };
     let headers = build_headers(token)?;
 
     let client = Client::new();
-    let response = client.get(path)
-        .headers(headers)
-        .send()
-        .await?;
+    let response = client.get(path).headers(headers).send().await?;
 
     let response_json = response.json::<serde_json::Value>().await?;
     let _config = ModelConfig::from_json(response_json);
@@ -158,8 +161,9 @@ mod tests {
 
         let model_info = result.unwrap();
         assert_eq!(model_info.model_id, Some("EleutherAI/gpt-j-6b".to_string()));
-        assert_eq!(model_info.tags, Some(
-            vec![
+        assert_eq!(
+            model_info.tags,
+            Some(vec![
                 "pytorch".to_string(),
                 "tf".to_string(),
                 "jax".to_string(),
@@ -173,8 +177,8 @@ mod tests {
                 "causal-lm".to_string(),
                 "license:apache-2.0".to_string(),
                 "has_space".to_string(),
-            ]
-        ));
+            ])
+        );
         assert_eq!(model_info.pipeline_tag, Some("text-generation".to_string()));
         assert_eq!(
             model_info.siblings.as_ref().unwrap(),
@@ -195,14 +199,17 @@ mod tests {
         );
         assert_eq!(
             model_info.security_status,
-            Some(from_value(json!({
-                "scansDone": null,
-                "dangerousPickles": null,
-                "hasUnsafeFile": false,
-                "repositoryId": "models/EleutherAI/gpt-j-6b",
-                "revision": "f98c709453c9402b1309b032f40df1c10ad481a2",
-                "clamAVInfectedFiles": null,
-            })).unwrap())
+            Some(
+                from_value(json!({
+                    "scansDone": null,
+                    "dangerousPickles": null,
+                    "hasUnsafeFile": false,
+                    "repositoryId": "models/EleutherAI/gpt-j-6b",
+                    "revision": "f98c709453c9402b1309b032f40df1c10ad481a2",
+                    "clamAVInfectedFiles": null,
+                }))
+                .unwrap()
+            )
         );
     }
 
@@ -214,9 +221,7 @@ mod tests {
         let files_metadata = Some(false);
         let token = Some("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");
 
-        let result = retrieve_model_info(
-            repo_id, revision, timeout, files_metadata, token
-        ).await;
+        let result = retrieve_model_info(repo_id, revision, timeout, files_metadata, token).await;
         assert!(result.is_ok());
         let mut model_info = result.unwrap();
 
@@ -224,8 +229,9 @@ mod tests {
             model_info.model_id.as_ref().unwrap(),
             revision,
             model_info.siblings.as_mut().unwrap(),
-            token
-        ).await;
+            token,
+        )
+        .await;
         assert!(result_list.is_ok());
 
         // Check that for each file, the size and oid are set
@@ -243,9 +249,7 @@ mod tests {
         let files_metadata = Some(false);
         let token = Some("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");
 
-        let result = retrieve_model_info(
-            repo_id, revision, timeout, files_metadata, token
-        ).await;
+        let result = retrieve_model_info(repo_id, revision, timeout, files_metadata, token).await;
         assert!(result.is_ok());
         let mut model_info = result.unwrap();
 
@@ -253,8 +257,9 @@ mod tests {
             model_info.model_id.as_ref().unwrap(),
             revision,
             &mut model_info.config,
-            token
-        ).await;
+            token,
+        )
+        .await;
         assert!(get_config.is_ok());
 
         // Check that the config is set

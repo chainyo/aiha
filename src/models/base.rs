@@ -1,9 +1,9 @@
 //! Base traits, structs and enums for models.
 use std::error::Error;
-use std::fmt::{ Display, Formatter, Result as FmtResult };
+use std::fmt::{Display, Formatter, Result as FmtResult};
 
 use serde_derive::Deserialize;
-use serde_json::{ Error as SerdeJsonError, Value };
+use serde_json::{Error as SerdeJsonError, Value};
 
 /// Enumerate the different model libraries available on the Hugging Face Hub
 #[derive(Clone, Debug, Deserialize, PartialEq)]
@@ -132,23 +132,38 @@ impl From<SerdeJsonError> for ModelError {
 /// Generic trait for Hugging Face models
 pub trait ModelConfigTrait {
     /// Returns the model hidden size
-    fn hidden_size(&self) -> i32 { Default::default() }
+    fn hidden_size(&self) -> i32 {
+        Default::default()
+    }
     /// Returns the model intermediate size
-    fn intermediate_size(&self) -> i32 { Default::default() }
+    fn intermediate_size(&self) -> i32 {
+        Default::default()
+    }
     /// Returns the model max position embeddings
-    fn max_position_embeddings(&self) -> i32 { Default::default() }
+    fn max_position_embeddings(&self) -> i32 {
+        Default::default()
+    }
     /// Returns the model number of attention heads
-    fn num_attention_heads(&self) -> i32 { Default::default() }
+    fn num_attention_heads(&self) -> i32 {
+        Default::default()
+    }
     /// Returns the model number of hidden layers
-    fn num_hidden_layers(&self) -> i32 { Default::default() }
+    fn num_hidden_layers(&self) -> i32 {
+        Default::default()
+    }
     /// Returns the model type
-    fn model_type(&self) -> &str { "" }
+    fn model_type(&self) -> &str {
+        ""
+    }
     /// Returns the model libraries
-    fn available_libraries(&self) -> &[ModelLibraries] { &[] }
+    fn available_libraries(&self) -> &[ModelLibraries] {
+        &[]
+    }
     /// Create a new model config from a JSON value.
-    fn from_json(value: Value) -> Result<Self, ModelError> where Self: Sized;
+    fn from_json(value: Value) -> Result<Self, ModelError>
+    where
+        Self: Sized;
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -187,7 +202,10 @@ mod tests {
             &[ModelLibraries::PyTorch]
         }
 
-        fn from_json(_value: Value) -> Result<Self, ModelError> where Self: Sized {
+        fn from_json(_value: Value) -> Result<Self, ModelError>
+        where
+            Self: Sized,
+        {
             Ok(MockModelConfig)
         }
     }

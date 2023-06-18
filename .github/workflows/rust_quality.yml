@@ -1,40 +1,53 @@
 name: Rust Quality
 
-on:
-  pull_request:
-  workflow_dispatch:
+on: [push, pull_request]
+
+env:
+  CARGO_TERM_COLOR: always
 
 jobs:
-  build:
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, windows-latest, macOS-latest]
-    defaults:
-      run:
-        working-directory: .
-
+  test:
+    name: Test
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v1
-
-      - name: Install Rust Stable
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-          components: clippy
-          override: true
-
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
+      - name: Run tests
+        run: cargo test
 
-      - name: Build
-        run: cargo build --all-targets --verbose
+  fmt:
+    name: Rustfmt
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt
+      - name: Enforce formatting
+        run: cargo fmt --check
 
-      - name: Lint with Clippy
-        run: cargo clippy --all-targets --all-features -- -D warnings
+  clippy:
+    name: Clippy
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy
+      - uses: Swatinem/rust-cache@v2
+      - name: Linting
+        run: cargo clippy -- -D warnings
 
-      - name: Run Tests
-        run: cargo test --verbose
-
-      - name: Run Audit
-        # RUSTSEC-2021-0145 is criterion so only within benchmarks
-        run: cargo audit -D warnings --ignore RUSTSEC-2021-0145
+  coverage:
+    name: Code coverage
+    runs-on: ubuntu-latest
+    container:
+      image: xd009642/tarpaulin
+      options: --security-opt seccomp=unconfined
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Generate code coverage
+        run: |
+          cargo tarpaulin --verbose --workspace

@@ -11,7 +11,11 @@ pub const CUSTOM_ENCODE_SET: &AsciiSet = &CONTROLS.add(b' ').add(b'/').add(b':')
 pub const HUB_ENDPOINT: &str = "https://huggingface.co";
 
 /// Format the user agent string
-fn http_user_agent(library_name: Option<&str>, library_version: Option<&str>, user_agent: Option<&str>) -> String {
+fn http_user_agent(
+    library_name: Option<&str>,
+    library_version: Option<&str>,
+    user_agent: Option<&str>,
+) -> String {
     let mut parts = vec![];
     if let Some(name) = library_name {
         parts.push(format!("{}-rust", name));
@@ -46,16 +50,17 @@ pub fn build_headers(token: Option<&str>) -> Result<HeaderMap, Box<dyn Error>> {
         http_user_agent(
             Some(env!("CARGO_PKG_NAME")),
             Some(env!("CARGO_PKG_VERSION")),
-            None
-        ).as_str()
+            None,
+        )
+        .as_str(),
     );
     headers.insert("user-agent", _user_agent.parse()?);
     match token {
         Some(t) => {
             headers.insert("authorization", format!("Bearer {}", t).parse()?);
             Ok(headers)
-        },
-        None => Err("No token provided".into())
+        }
+        None => Err("No token provided".into()),
     }
 }
 

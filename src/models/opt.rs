@@ -2,7 +2,7 @@
 use serde::Deserialize;
 use serde_json::Value;
 
-use crate::models::{ ModelConfigTrait, ModelError, ModelLibraries };
+use crate::models::{ModelConfigTrait, ModelError, ModelLibraries};
 
 /// A struct representing the OPT architecture parameters
 #[derive(Clone, Debug, Deserialize)]
@@ -41,23 +41,29 @@ impl OPTParams {
     pub fn from_json(value: Value) -> Result<OPTParams, ModelError> {
         let hidden_size = value["hidden_size"]
             .as_i64()
-            .ok_or(ModelError::MissingField("hidden_size".to_string()))? as i32;
+            .ok_or(ModelError::MissingField("hidden_size".to_string()))?
+            as i32;
 
         let ffn_dim = value["ffn_dim"]
             .as_i64()
             .ok_or(ModelError::MissingField("ffn_dim".to_string()))? as i32;
 
-        let max_position_embeddings = value["max_position_embeddings"]
-            .as_i64()
-            .ok_or(ModelError::MissingField("max_position_embeddings".to_string()))? as i32;
+        let max_position_embeddings =
+            value["max_position_embeddings"]
+                .as_i64()
+                .ok_or(ModelError::MissingField(
+                    "max_position_embeddings".to_string(),
+                ))? as i32;
 
         let num_attention_heads = value["num_attention_heads"]
             .as_i64()
-            .ok_or(ModelError::MissingField("num_attention_heads".to_string()))? as i32;
+            .ok_or(ModelError::MissingField("num_attention_heads".to_string()))?
+            as i32;
 
         let num_hidden_layers = value["num_hidden_layers"]
             .as_i64()
-            .ok_or(ModelError::MissingField("num_hidden_layers".to_string()))? as i32;
+            .ok_or(ModelError::MissingField("num_hidden_layers".to_string()))?
+            as i32;
 
         Ok(OPTParams::new(
             hidden_size,
@@ -126,7 +132,10 @@ impl ModelConfigTrait for OPTModelConfig {
         &self.available_libraries
     }
 
-    fn from_json(value: Value) -> Result<Self, ModelError> where Self: Sized {
+    fn from_json(value: Value) -> Result<Self, ModelError>
+    where
+        Self: Sized,
+    {
         let params = OPTParams::from_json(value.clone())?;
 
         let model_type = match value["model_type"].as_str() {
@@ -151,13 +160,7 @@ mod tests {
 
     #[test]
     fn test_opt_model_params() {
-        let opt_params = OPTParams::new(
-            768,
-            3072,
-            512,
-            12,
-            12,
-        );
+        let opt_params = OPTParams::new(768, 3072, 512, 12, 12);
 
         assert_eq!(opt_params.hidden_size, 768);
         assert_eq!(opt_params.ffn_dim, 3072);
@@ -168,13 +171,7 @@ mod tests {
 
     #[test]
     fn test_opt_model_config() {
-        let opt_params = OPTParams::new(
-            768,
-            3072,
-            512,
-            12,
-            12,
-        );
+        let opt_params = OPTParams::new(768, 3072, 512, 12, 12);
 
         let opt_model_config = OPTModelConfig::new(
             opt_params,
@@ -188,18 +185,15 @@ mod tests {
         assert_eq!(opt_model_config.params.num_attention_heads, 12);
         assert_eq!(opt_model_config.params.num_hidden_layers, 12);
         assert_eq!(opt_model_config.model_type, "opt");
-        assert_eq!(opt_model_config.available_libraries, vec![ModelLibraries::TensorFlow, ModelLibraries::PyTorch]);
+        assert_eq!(
+            opt_model_config.available_libraries,
+            vec![ModelLibraries::TensorFlow, ModelLibraries::PyTorch]
+        );
     }
 
     #[test]
     fn test_opt_model_trait_implementation() {
-        let opt_params = OPTParams::new(
-            768,
-            3072,
-            512,
-            12,
-            12,
-        );
+        let opt_params = OPTParams::new(768, 3072, 512, 12, 12);
 
         let opt_model_config = OPTModelConfig::new(
             opt_params,
@@ -213,6 +207,9 @@ mod tests {
         assert_eq!(opt_model_config.num_attention_heads(), 12);
         assert_eq!(opt_model_config.num_hidden_layers(), 12);
         assert_eq!(opt_model_config.model_type(), "opt");
-        assert_eq!(opt_model_config.available_libraries(), vec![ModelLibraries::TensorFlow, ModelLibraries::PyTorch]);
+        assert_eq!(
+            opt_model_config.available_libraries(),
+            vec![ModelLibraries::TensorFlow, ModelLibraries::PyTorch]
+        );
     }
 }

@@ -2,7 +2,7 @@
 use serde::Deserialize;
 use serde_json::Value;
 
-use crate::models::{ ModelConfigTrait, ModelError, ModelLibraries };
+use crate::models::{ModelConfigTrait, ModelError, ModelLibraries};
 
 /// A struct representing the GPT2 architecture parameters
 #[derive(Clone, Debug, Deserialize)]
@@ -44,13 +44,12 @@ impl GPT2Params {
             .as_i64()
             .ok_or(ModelError::MissingField("n_embd".to_string()))? as i32;
 
-        let n_inner = value["n_inner"]
-            .as_i64()
-            .map(|val| val as i32); // map the i64 to i32 if it exists
+        let n_inner = value["n_inner"].as_i64().map(|val| val as i32); // map the i64 to i32 if it exists
 
         let n_positions = value["n_positions"]
             .as_i64()
-            .ok_or(ModelError::MissingField("n_positions".to_string()))? as i32;
+            .ok_or(ModelError::MissingField("n_positions".to_string()))?
+            as i32;
 
         let n_head = value["n_head"]
             .as_i64()
@@ -60,7 +59,13 @@ impl GPT2Params {
             .as_i64()
             .ok_or(ModelError::MissingField("n_layer".to_string()))? as i32;
 
-        Ok(GPT2Params::new(n_embd, n_inner, n_positions, n_head, n_layer))
+        Ok(GPT2Params::new(
+            n_embd,
+            n_inner,
+            n_positions,
+            n_head,
+            n_layer,
+        ))
     }
 }
 
@@ -121,9 +126,12 @@ impl ModelConfigTrait for GPT2ModelConfig {
         &self.available_libraries
     }
 
-    fn from_json(value: Value) -> Result<Self, ModelError> where Self: Sized {
+    fn from_json(value: Value) -> Result<Self, ModelError>
+    where
+        Self: Sized,
+    {
         let params = GPT2Params::from_json(value.clone())?;
-    
+
         let model_type = match value["model_type"].as_str() {
             Some(model_type) => model_type.to_string(),
             None => return Err(ModelError::MissingField("model_type".to_string())),
@@ -136,7 +144,11 @@ impl ModelConfigTrait for GPT2ModelConfig {
         //     None => return Err(ModelError::MissingField("available_libraries".to_string())),
         // };
 
-        Ok(GPT2ModelConfig::new(params, model_type, available_libraries))
+        Ok(GPT2ModelConfig::new(
+            params,
+            model_type,
+            available_libraries,
+        ))
     }
 }
 
@@ -157,26 +169,40 @@ mod tests {
     #[test]
     fn test_gpt2_model_config() {
         let params = GPT2Params::new(768, None, 1024, 12, 12);
-        let model_config = GPT2ModelConfig::new(params, "gpt2".to_string(), vec![ModelLibraries::Transformers]);
+        let model_config = GPT2ModelConfig::new(
+            params,
+            "gpt2".to_string(),
+            vec![ModelLibraries::Transformers],
+        );
         assert_eq!(model_config.params.n_embd, 768);
         assert_eq!(model_config.params.n_inner, 3072);
         assert_eq!(model_config.params.n_positions, 1024);
         assert_eq!(model_config.params.n_head, 12);
         assert_eq!(model_config.params.n_layer, 12);
         assert_eq!(model_config.model_type, "gpt2");
-        assert_eq!(model_config.available_libraries, vec![ModelLibraries::Transformers]);
+        assert_eq!(
+            model_config.available_libraries,
+            vec![ModelLibraries::Transformers]
+        );
     }
 
     #[test]
     fn test_gpt2_model_trait_implementation() {
         let params = GPT2Params::new(768, None, 1024, 12, 12);
-        let model_config = GPT2ModelConfig::new(params, "gpt2".to_string(), vec![ModelLibraries::Transformers]);
+        let model_config = GPT2ModelConfig::new(
+            params,
+            "gpt2".to_string(),
+            vec![ModelLibraries::Transformers],
+        );
         assert_eq!(model_config.hidden_size(), 768);
         assert_eq!(model_config.intermediate_size(), 3072);
         assert_eq!(model_config.max_position_embeddings(), 1024);
         assert_eq!(model_config.num_attention_heads(), 12);
         assert_eq!(model_config.num_hidden_layers(), 12);
         assert_eq!(model_config.model_type(), "gpt2");
-        assert_eq!(model_config.available_libraries(), vec![ModelLibraries::Transformers]);
+        assert_eq!(
+            model_config.available_libraries(),
+            vec![ModelLibraries::Transformers]
+        );
     }
 }

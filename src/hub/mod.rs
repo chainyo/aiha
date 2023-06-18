@@ -17,15 +17,7 @@ pub use siblings::Siblings;
 // Hub methods for getting model info
 // Hub methods
 mod api;
-pub use api::{
-    get_model_config,
-    list_files_info,
-    retrieve_model_info,
-};
+pub use api::{get_model_config, list_files_info, retrieve_model_info};
 // Utils
 mod utils;
-pub use utils::{
-    CUSTOM_ENCODE_SET,
-    HUB_ENDPOINT,
-    build_headers,
-};
+pub use utils::{build_headers, CUSTOM_ENCODE_SET, HUB_ENDPOINT};

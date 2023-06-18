@@ -2,16 +2,8 @@
 use serde::Deserialize;
 
 use crate::models::{
-    BertModelConfig,
-    BloomModelConfig,
-    GPT2ModelConfig,
-    GPTJModelConfig,
-    GPTNeoModelConfig,
-    LlamaModelConfig,
-    ModelConfigTrait,
-    ModelError,
-    OPTModelConfig,
-    T5ModelConfig,
+    BertModelConfig, BloomModelConfig, GPT2ModelConfig, GPTJModelConfig, GPTNeoModelConfig,
+    LlamaModelConfig, ModelConfigTrait, ModelError, OPTModelConfig, T5ModelConfig,
 };
 
 /// Enum all the possible model types
@@ -121,8 +113,13 @@ impl ModelConfigTrait for ModelConfig {
             ModelConfig::T5(config) => config.available_libraries(),
         }
     }
-    fn from_json(value: serde_json::Value) -> Result<Self, ModelError> where Self: Sized {
-        let model_type = value["model_type"].as_str().ok_or(ModelError::MissingField("model_type".to_string()))?;
+    fn from_json(value: serde_json::Value) -> Result<Self, ModelError>
+    where
+        Self: Sized,
+    {
+        let model_type = value["model_type"]
+            .as_str()
+            .ok_or(ModelError::MissingField("model_type".to_string()))?;
         match model_type {
             "bert" => Ok(ModelConfig::Bert(BertModelConfig::from_json(value)?)),
             "bloom" => Ok(ModelConfig::Bloom(BloomModelConfig::from_json(value)?)),
@@ -138,7 +135,5 @@ impl ModelConfigTrait for ModelConfig {
     }
 }
 
-
 #[cfg(test)]
-mod tests {
-}
+mod tests {}

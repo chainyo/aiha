@@ -1,10 +1,9 @@
 //! Module for analyzing the hardware of the running system.
 use num_cpus;
-use nvml_wrapper::Nvml;
-use nvml_wrapper::enums::device::DeviceArchitecture;
 use nvml_wrapper::enum_wrappers::device::Brand;
+use nvml_wrapper::enums::device::DeviceArchitecture;
 use nvml_wrapper::structs::device::CudaComputeCapability;
-
+use nvml_wrapper::Nvml;
 
 /// Struct for storing the hardware information of the running system.
 #[derive(Debug)]
@@ -117,27 +116,31 @@ pub fn scan_hardware() -> Result<Hardware, String> {
     // so we can return the Hardware struct. Otherwise, we need to get
     // the information for each GPU.
     let nvidia_gpus = if gpu_count > 0 {
-        (0..gpu_count).map(|i| {
-            // Get the information for the GPU at index i.
-            let device = nvml.device_by_index(i).map_err(|e| e.to_string())?;
-            let architecture = device.architecture().map_err(|e| e.to_string())?;
-            let brand = device.brand().map_err(|e| e.to_string())?;
-            let cuda_compute_capability = device.cuda_compute_capability().map_err(|e| e.to_string())?;
-            let memory_info = device.memory_info().map_err(|e| e.to_string())?.total;
-            let name = device.name().map_err(|e| e.to_string())?;
-            let num_cores = device.num_cores().map_err(|e| e.to_string())?;
-            let uuid = device.uuid().map_err(|e| e.to_string())?;
-            // Return the NvidiaDevice struct.
-            Ok(NvidiaDevice {
-                architecture,
-                brand,
-                cuda_compute_capability,
-                memory_info,
-                name,
-                num_cores,
-                uuid,
+        (0..gpu_count)
+            .map(|i| {
+                // Get the information for the GPU at index i.
+                let device = nvml.device_by_index(i).map_err(|e| e.to_string())?;
+                let architecture = device.architecture().map_err(|e| e.to_string())?;
+                let brand = device.brand().map_err(|e| e.to_string())?;
+                let cuda_compute_capability = device
+                    .cuda_compute_capability()
+                    .map_err(|e| e.to_string())?;
+                let memory_info = device.memory_info().map_err(|e| e.to_string())?.total;
+                let name = device.name().map_err(|e| e.to_string())?;
+                let num_cores = device.num_cores().map_err(|e| e.to_string())?;
+                let uuid = device.uuid().map_err(|e| e.to_string())?;
+                // Return the NvidiaDevice struct.
+                Ok(NvidiaDevice {
+                    architecture,
+                    brand,
+                    cuda_compute_capability,
+                    memory_info,
+                    name,
+                    num_cores,
+                    uuid,
+                })
             })
-        }).collect::<Result<Vec<NvidiaDevice>, String>>()?
+            .collect::<Result<Vec<NvidiaDevice>, String>>()?
     } else {
         Vec::new()
     };
@@ -180,7 +183,10 @@ pub fn scan_gpu_count(os: &str, arch: &str, nvml: &Nvml) -> Result<u32, String> 
         ("linux", _) => _scan_gpu_count(nvml),
         ("windows", _) => _scan_gpu_count(nvml),
         ("macos", arch) if arch != "aarch64" => _scan_gpu_count(nvml),
-        _ => Err("GPU scan is only supported on Linux, Windows, and macOS (excluding Apple Silicon).".to_string())
+        _ => Err(
+            "GPU scan is only supported on Linux, Windows, and macOS (excluding Apple Silicon)."
+                .to_string(),
+        ),
     }
 }
 
@@ -215,26 +221,30 @@ mod tests {
             cpu_cores: 8,
             cpu_threads: 16,
             gpu_count: 1,
-            nvidia_gpus: vec![
-                setup_nvidia_device(),
-            ],
+            nvidia_gpus: vec![setup_nvidia_device()],
         };
-    
+
         assert_eq!(hardware.os, "linux".to_string());
         assert_eq!(hardware.arch, "x86_64".to_string());
         assert_eq!(hardware.cpu_cores, 8);
         assert_eq!(hardware.cpu_threads, 16);
         assert_eq!(hardware.gpu_count, 1);
         assert_eq!(hardware.nvidia_gpus.len(), 1);
-    
+
         let nvidia_gpu = &hardware.nvidia_gpus[0];
         assert_eq!(nvidia_gpu.architecture, DeviceArchitecture::Kepler);
         assert_eq!(nvidia_gpu.brand, Brand::Tesla);
-        assert_eq!(nvidia_gpu.cuda_compute_capability, CudaComputeCapability { major: 3, minor: 7 });
+        assert_eq!(
+            nvidia_gpu.cuda_compute_capability,
+            CudaComputeCapability { major: 3, minor: 7 }
+        );
         assert_eq!(nvidia_gpu.memory_info, 4294967296);
         assert_eq!(nvidia_gpu.name, "Tesla K80".to_string());
         assert_eq!(nvidia_gpu.num_cores, 2496);
-        assert_eq!(nvidia_gpu.uuid, "GPU-4c2b7f7c-0b7e-0e1a-1e1f-2f3e4d5e6f7g".to_string());
+        assert_eq!(
+            nvidia_gpu.uuid,
+            "GPU-4c2b7f7c-0b7e-0e1a-1e1f-2f3e4d5e6f7g".to_string()
+        );
     }
 
     #[test]
@@ -242,11 +252,17 @@ mod tests {
         let nvidia_device = setup_nvidia_device();
         assert_eq!(nvidia_device.architecture, DeviceArchitecture::Kepler);
         assert_eq!(nvidia_device.brand, Brand::Tesla);
-        assert_eq!(nvidia_device.cuda_compute_capability, CudaComputeCapability { major: 3, minor: 7 });
+        assert_eq!(
+            nvidia_device.cuda_compute_capability,
+            CudaComputeCapability { major: 3, minor: 7 }
+        );
         assert_eq!(nvidia_device.memory_info, 4294967296);
         assert_eq!(nvidia_device.name, "Tesla K80".to_string());
         assert_eq!(nvidia_device.num_cores, 2496);
-        assert_eq!(nvidia_device.uuid, "GPU-4c2b7f7c-0b7e-0e1a-1e1f-2f3e4d5e6f7g".to_string());
+        assert_eq!(
+            nvidia_device.uuid,
+            "GPU-4c2b7f7c-0b7e-0e1a-1e1f-2f3e4d5e6f7g".to_string()
+        );
     }
 
     #[test]
@@ -284,7 +300,6 @@ mod tests {
         assert_eq!(hardware.gpu_count, 0);
         assert_eq!(hardware.nvidia_gpus.len(), 0);
     }
-    
 
     #[test]
     fn test_scan_os() {

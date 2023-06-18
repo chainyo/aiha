@@ -2,7 +2,7 @@
 use serde::Deserialize;
 use serde_json::Value;
 
-use crate::models::{ ModelConfigTrait, ModelError, ModelLibraries };
+use crate::models::{ModelConfigTrait, ModelError, ModelLibraries};
 
 /// A struct representing the BLOOM architecture parameters
 #[derive(Clone, Debug, Deserialize)]
@@ -21,12 +21,7 @@ pub struct BloomParams {
 /// BLOOM model parameters implementation
 impl BloomParams {
     /// Build a new `BloomParams` struct based on the provided parameters
-    pub fn new(
-        n_embd: i32,
-        n_inner: i32,
-        num_attention_heads: i32,
-        n_layer: i32,
-    ) -> BloomParams {
+    pub fn new(n_embd: i32, n_inner: i32, num_attention_heads: i32, n_layer: i32) -> BloomParams {
         BloomParams {
             n_embd,
             n_inner,
@@ -46,7 +41,8 @@ impl BloomParams {
 
         let num_attention_heads = value["num_attention_heads"]
             .as_i64()
-            .ok_or(ModelError::MissingField("num_attention_heads".to_string()))? as i32;
+            .ok_or(ModelError::MissingField("num_attention_heads".to_string()))?
+            as i32;
 
         let n_layer = value["n_layer"]
             .as_i64()
@@ -181,7 +177,10 @@ mod tests {
         assert_eq!(bloom_model_config.params.num_attention_heads, 12);
         assert_eq!(bloom_model_config.params.n_layer, 12);
         assert_eq!(bloom_model_config.model_type, "bloom");
-        assert_eq!(bloom_model_config.available_libraries, vec![ModelLibraries::PyTorch]);
+        assert_eq!(
+            bloom_model_config.available_libraries,
+            vec![ModelLibraries::PyTorch]
+        );
     }
 
     #[test]
@@ -205,6 +204,9 @@ mod tests {
         assert_eq!(bloom_model_config.num_attention_heads(), 12);
         assert_eq!(bloom_model_config.num_hidden_layers(), 12);
         assert_eq!(bloom_model_config.model_type(), "bloom");
-        assert_eq!(bloom_model_config.available_libraries(), vec![ModelLibraries::PyTorch]);
+        assert_eq!(
+            bloom_model_config.available_libraries(),
+            vec![ModelLibraries::PyTorch]
+        );
     }
 }

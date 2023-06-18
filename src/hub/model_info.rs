@@ -3,11 +3,11 @@ use std::collections::HashMap;
 use std::fmt;
 use std::ops::Not;
 
-use serde_json::Value;
 use serde::Deserialize;
+use serde_json::Value;
 
-use crate::hub::{ ModelConfig, ModelFile, Siblings };
-use crate::models::{ ModelConfigTrait, ModelLibraries};
+use crate::hub::{ModelConfig, ModelFile, Siblings};
+use crate::models::{ModelConfigTrait, ModelLibraries};
 
 /// Struct for storing the model metadata
 #[derive(Debug, Deserialize)]
@@ -52,42 +52,53 @@ impl ModelInfo {
     }
     /// Get the config model_type of the repository
     pub fn get_model_type(&self) -> Option<String> {
-        self.config.as_ref().map(|config| config.model_type().to_string())
+        self.config
+            .as_ref()
+            .map(|config| config.model_type().to_string())
     }
     /// Get the config available libraries of the repository
     pub fn get_available_libraries(&self) -> Option<Vec<ModelLibraries>> {
-        self.config.as_ref().map(|config| config.available_libraries().to_vec())
+        self.config
+            .as_ref()
+            .map(|config| config.available_libraries().to_vec())
     }
     /// Check for security vulnerabilities
     pub fn has_vulnerabilities(&self) -> bool {
         if let Some(security_status) = &self.security_status {
-            if let Some(true) = security_status.get("hasUnsafeFile").and_then(|v| v.as_bool()) {
+            if let Some(true) = security_status
+                .get("hasUnsafeFile")
+                .and_then(|v| v.as_bool())
+            {
                 return true;
             }
-            if let Some(value) = security_status
-                .get("scansDone").map(|v| !v.is_null().not()) {
-                    if !value {
-                        return true;
-                    }
+            if let Some(value) = security_status.get("scansDone").map(|v| !v.is_null().not()) {
+                if !value {
+                    return true;
                 }
+            }
             if let Some(value) = security_status
-                .get("clamAVInfectedFiles").map(|v| !v.is_null().not()) {
-                    if !value {
-                        return true;
-                    }
+                .get("clamAVInfectedFiles")
+                .map(|v| !v.is_null().not())
+            {
+                if !value {
+                    return true;
                 }
+            }
             if let Some(value) = security_status
-                .get("dangerousPickles").map(|v| !v.is_null().not()) {
-                    if !value {
-                        return true;
-                    }
+                .get("dangerousPickles")
+                .map(|v| !v.is_null().not())
+            {
+                if !value {
+                    return true;
                 }
+            }
         }
         false
     }
     /// Create a new ModelInfo struct from a serde_json::Value
     pub fn from_json(value: serde_json::Value) -> Self {
-        let _siblings: Vec<serde_json::Value> = serde_json::from_value(value["siblings"].clone()).unwrap_or_default();
+        let _siblings: Vec<serde_json::Value> =
+            serde_json::from_value(value["siblings"].clone()).unwrap_or_default();
         let siblings = Siblings::new(
             _siblings
                 .iter()
@@ -96,7 +107,9 @@ impl ModelInfo {
         );
         ModelInfo::new(
             value["id"].as_str().map(|s| s.to_string()),
-            value["tags"].as_array().map(|a| a.iter().map(|v| v.as_str().unwrap().to_string()).collect()),
+            value["tags"]
+                .as_array()
+                .map(|a| a.iter().map(|v| v.as_str().unwrap().to_string()).collect()),
             value["pipeline_tag"].as_str().map(|s| s.to_string()),
             Some(siblings),
             None,
@@ -122,9 +135,9 @@ impl fmt::Display for ModelInfo {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::hub::{ModelFile, Siblings};
     use pretty_assertions::assert_eq;
     use serde_json::{from_value, json};
-    use crate::hub::{ModelFile, Siblings};
 
     fn create_model_files() -> Vec<ModelFile> {
         vec![
@@ -142,32 +155,40 @@ mod tests {
     }
 
     fn create_sample_siblings() -> Siblings {
-        Siblings { siblings: create_model_files() }
+        Siblings {
+            siblings: create_model_files(),
+        }
     }
 
     fn create_model_info(vulnerabilities: bool) -> ModelInfo {
         let siblings = create_sample_siblings();
         let security_status = if vulnerabilities {
-            Some(from_value(json!({
-                "scansDone": null,
-                "dangerousPickles": null,
-                "hasUnsafeFile": true,
-                "repositoryId": "models/EleutherAI/gpt-j-6b",
-                "revision": "f98c709453c9402b1309b032f40df1c10ad481a2",
-                "clamAVInfectedFiles": vec![
-                    "pytorch_model.bin".to_string(),
-                    "config.json".to_string(),
-                    "vocab.txt".to_string()]
-            })).unwrap())
+            Some(
+                from_value(json!({
+                    "scansDone": null,
+                    "dangerousPickles": null,
+                    "hasUnsafeFile": true,
+                    "repositoryId": "models/EleutherAI/gpt-j-6b",
+                    "revision": "f98c709453c9402b1309b032f40df1c10ad481a2",
+                    "clamAVInfectedFiles": vec![
+                        "pytorch_model.bin".to_string(),
+                        "config.json".to_string(),
+                        "vocab.txt".to_string()]
+                }))
+                .unwrap(),
+            )
         } else {
-            Some(from_value(json!({
-                "scansDone": null,
-                "dangerousPickles": null,
-                "hasUnsafeFile": false,
-                "repositoryId": "models/EleutherAI/gpt-j-6b",
-                "revision": "f98c709453c9402b1309b032f40df1c10ad481a2",
-                "clamAVInfectedFiles": null,
-            })).unwrap())
+            Some(
+                from_value(json!({
+                    "scansDone": null,
+                    "dangerousPickles": null,
+                    "hasUnsafeFile": false,
+                    "repositoryId": "models/EleutherAI/gpt-j-6b",
+                    "revision": "f98c709453c9402b1309b032f40df1c10ad481a2",
+                    "clamAVInfectedFiles": null,
+                }))
+                .unwrap(),
+            )
         };
         ModelInfo::new(
             Some("EleutherAI/gpt-j-6b".to_string()),
@@ -206,10 +227,7 @@ mod tests {
     #[test]
     fn test_model_info_get_siblings() {
         let model_info = create_model_info(false);
-        assert_eq!(
-            model_info.get_siblings(),
-            Some(&create_sample_siblings())
-        );
+        assert_eq!(model_info.get_siblings(), Some(&create_sample_siblings()));
     }
 
     #[test]

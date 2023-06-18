@@ -41,9 +41,7 @@ impl ModelFile {
 /// Implement partial equality for the ModelFile struct
 impl PartialEq for ModelFile {
     fn eq(&self, other: &Self) -> bool {
-        self.rfilename == other.rfilename
-            && self.size == other.size
-            && self.oid == other.oid
+        self.rfilename == other.rfilename && self.size == other.size && self.oid == other.oid
     }
 }
 
@@ -65,7 +63,10 @@ impl fmt::Display for ModelFile {
 impl From<serde_json::Value> for ModelFile {
     fn from(response_json: serde_json::Value) -> Self {
         ModelFile::new(
-            response_json["rfilename"].as_str().map(|s| s.to_string()).unwrap_or_default(),
+            response_json["rfilename"]
+                .as_str()
+                .map(|s| s.to_string())
+                .unwrap_or_default(),
             serde_json::from_value(response_json["size"].clone()).unwrap_or_default(),
             serde_json::from_value(response_json["oid"].clone()).unwrap_or_default(),
         )
